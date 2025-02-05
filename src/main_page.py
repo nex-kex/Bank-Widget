@@ -32,7 +32,7 @@ def greet_user(date: str) -> str:
 def get_cards_numbers(transactions_list: list[dict]) -> list[dict]:
     """По каждой карте находит последние 4 цифры, общую сумму расходов за текущий (последний) месяц и кешбэк."""
 
-    cards = defaultdict(int)
+    cards: dict = defaultdict(int)
     for transaction in transactions_list:
         if transaction["Сумма операции с округлением"] < 0:
             cards[transaction["Номер карты"][1:]] += transaction["Сумма операции с округлением"]
@@ -77,14 +77,9 @@ def get_currency_rate(currencies: list[str]) -> dict:
     """Возвращает курс валют в рублях."""
     url = "https://www.cbr-xml-daily.ru/daily_json.js"
     response = requests.get(url).json()
-    answer = {"currency_rates": []}
+    answer: dict = {"currency_rates": []}
     for currency in currencies:
-        answer["currency_rates"].append(
-            {
-                "currency": currency,
-                "rate": response["Valute"][currency]["Value"]
-            }
-        )
+        answer["currency_rates"].append({"currency": currency, "rate": response["Valute"][currency]["Value"]})
     return answer
 
 
@@ -94,7 +89,7 @@ def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> dict:
     url = f"http://api.marketstack.com/v2/eod?access_key={API_KEY}&symbols={stocks_str}"
 
     response = requests.get(url).json()
-    answer = {"stock_prices": []}
+    answer: dict = {"stock_prices": []}
 
     for i in range(len(stocks)):
         answer["stock_prices"].append(
