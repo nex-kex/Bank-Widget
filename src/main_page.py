@@ -1,6 +1,7 @@
 import datetime
 import os
 from collections import defaultdict
+import json
 
 import requests
 from dotenv import load_dotenv
@@ -34,18 +35,19 @@ def get_cards_numbers(transactions_list: list[dict]) -> list[dict]:
 
     cards: dict = defaultdict(int)
     for transaction in transactions_list:
-        if transaction["Сумма операции с округлением"] < 0:
-            cards[transaction["Номер карты"][1:]] += transaction["Сумма операции с округлением"]
+        if transaction["Сумма операции"] < 0:
+            cards[transaction["Номер карты"]] += transaction["Сумма операции с округлением"]
 
     result = []
     for key, value in cards.items():
-        result.append(
-            {
-                "last_digits": key,
-                "total_spent": value,
-                "cashback": round(value / 100, 2),
-            }
-        )
+        if str(key) != "nan":
+            result.append(
+                {
+                    "last_digits": str(key)[1:],
+                    "total_spent": round(value, 2),
+                    "cashback": round(value / 100, 2),
+                }
+            )
 
     return result
 
@@ -73,18 +75,19 @@ def get_top_transactions(transactions_list: list[dict]) -> list[dict]:
     return top_transactions
 
 
-def get_currency_rate(currencies: list[str]) -> dict:
+def get_currency_rate(currencies: list[str]) -> list[dict]:
     """Возвращает курс валют в рублях."""
     url = "https://www.cbr-xml-daily.ru/daily_json.js"
     response = requests.get(url).json()
-    answer: dict = {"currency_rates": []}
+    answer= []
     for currency in currencies:
-        answer["currency_rates"].append({"currency": currency, "rate": response["Valute"][currency]["Value"]})
+        answer.append({"currency": currency, "rate": response["Valute"][currency]["Value"]})
     return answer
 
 
 def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> dict:
-    """Возвращает стоимость акций."""
+    """Возвращает стоимость акций в долларах. Чтобы вернуть стоимость в другой валюте,
+    необходимо присвоить курс доллара необязательному параметру usd_rate."""
     stocks_str = ",".join(stocks)
     url = f"http://api.marketstack.com/v2/eod?access_key={API_KEY}&symbols={stocks_str}"
 
@@ -100,3 +103,16 @@ def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> dict:
         )
 
     return answer
+
+
+def main_page_func(date: str, transactions_list: list[dict], currencies: list[str], stocks: list[str], usd_rate: float = 1) -> dict:
+
+    result = {
+        "greeting": greet_user(date),
+        "cards": get_cards_numbers(transactions_list),
+        "top_transactions": get_top_transactions(transactions_list),
+        "currency_rates": get_currency_rate(currencies),
+        "stock_prices": get_stock_exchange(stocks, usd_rate),
+    }
+
+    return result
