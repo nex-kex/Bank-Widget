@@ -1,8 +1,8 @@
 import datetime
 import json
 
-from src.main_page import main_page_func
 from src.events import events_func
+from src.main_page import main_page_func
 from src.sorting import sort_by_period
 from src.utils import read_from_xlsx
 from src.views import create_report

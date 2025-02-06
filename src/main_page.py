@@ -1,5 +1,6 @@
 import datetime
 from collections import defaultdict
+
 from src.api_search import get_currency_rate, get_stock_exchange
 
 
@@ -76,8 +77,8 @@ def main_page_func(
         "greeting": greet_user(date),
         "cards": get_cards_numbers(transactions_list),
         "top_transactions": get_top_transactions(transactions_list),
-        "currency_rates": get_currency_rate(currencies),
-        "stock_prices": get_stock_exchange(stocks, usd_rate),
+        # "currency_rates": get_currency_rate(currencies),
+        # "stock_prices": get_stock_exchange(stocks, usd_rate),
     }
 
     return result

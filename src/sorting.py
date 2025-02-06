@@ -29,7 +29,9 @@ def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK",
             if re.search(string_period, transaction_date) and transaction["Статус"] == status:
                 current_period_transactions.append(transaction)
     else:
-        last_date = datetime.datetime.strptime(transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+        last_date = datetime.datetime.strptime(transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
         return sort_by_period(transactions_list, last_date, status=status, period=period)
 
     return current_period_transactions

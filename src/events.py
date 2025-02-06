@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Union
 
 from src.api_search import get_currency_rate, get_stock_exchange
 
@@ -10,7 +11,7 @@ def get_expenses(transactions_list: list[dict]) -> dict:
     - Раздел "Основные", где траты по 7 основным категориям отсортированы по убыванию, остальные траты в "Остальном".
     - Раздел "Переводы и наличные", сумма по категориям отсортирована по убыванию."""
 
-    category_expenses = defaultdict(int)
+    category_expenses: dict = defaultdict(int)
     total_expenses = 0
 
     for transaction in transactions_list:
@@ -28,36 +29,40 @@ def get_expenses(transactions_list: list[dict]) -> dict:
         "main": [],
         "transfers_and_cash": [],
     }
+    answer_main = []
+    answer_transfers_and_cash = []
 
     # Заполнение данных по 7 основным категориям
     for i in range(7):
-        answer["main"].append(
+        answer_main.append(
             {
                 "category": sorted_categories[i],
                 "amount": round(category_expenses[sorted_categories[i]], 2),
             }
         )
     # Создание категории "Остальное" и добавление в неё остальных расходов
-    answer["main"].append(
+    answer_main.append(
         {
             "category": "Остальное",
             "amount": 0,
         }
     )
     for i in range(7, len(sorted_categories)):
-        answer["main"][7]["amount"] += category_expenses[sorted_categories[i]]
-    answer["main"][7]["amount"] = round(answer["main"][7]["amount"], 2)
+        answer_main[7]["amount"] += category_expenses[sorted_categories[i]]
+    answer_main[7]["amount"] = round(answer_main[7]["amount"], 2)
+
+    answer["main"] = answer_main
 
     # Добавление раздела "Наличные и переводы" по убыванию в них суммы расходов
     for category in sorted_categories:
         if category == "Наличные":
-            answer["transfers_and_cash"].append(
+            answer_transfers_and_cash.append(
                 {
                     "category": "Наличные",
                     "amount": round(category_expenses["Наличные"], 2),
                 }
             )
-            answer["transfers_and_cash"].append(
+            answer_transfers_and_cash.append(
                 {
                     "category": "Переводы",
                     "amount": round(category_expenses["Переводы"], 2),
@@ -65,19 +70,21 @@ def get_expenses(transactions_list: list[dict]) -> dict:
             )
             break
         elif category == "Переводы":
-            answer["transfers_and_cash"].append(
+            answer_transfers_and_cash.append(
                 {
                     "category": "Переводы",
                     "amount": round(category_expenses["Переводы"], 2),
                 }
             )
-            answer["transfers_and_cash"].append(
+            answer_transfers_and_cash.append(
                 {
                     "category": "Наличные",
                     "amount": round(category_expenses["Наличные"], 2),
                 }
             )
             break
+
+    answer["transfers_and_cash"] = answer_transfers_and_cash
 
     return answer
 
@@ -88,7 +95,7 @@ def get_incomes(transactions_list: list[dict]) -> dict:
     - Общая сумма поступлений.
     - Раздел "Основные", где поступления по категориям отсортированы по убыванию."""
 
-    category_incomes = defaultdict(int)
+    category_incomes: dict = defaultdict(int)
     total_incomes = 0
 
     for transaction in transactions_list:
@@ -105,14 +112,18 @@ def get_incomes(transactions_list: list[dict]) -> dict:
         "total_amount": round(total_incomes, 2),
         "main": [],
     }
+    answer_main = []
+
     # Заполнение данных по категориям
     for i in range(len(sorted_categories)):
-        answer["main"].append(
+        answer_main.append(
             {
                 "category": sorted_categories[i],
                 "amount": round(category_incomes[sorted_categories[i]], 2),
             }
         )
+
+    answer["main"] = answer_main
 
     return answer
 
@@ -122,8 +133,8 @@ def events_func(transactions_list: list[dict], currencies: list[str], stocks: li
     result = {
         "expenses": get_expenses(transactions_list),
         "income": get_incomes(transactions_list),
-        "currency_rates": get_currency_rate(currencies),
-        "stock_prices": get_stock_exchange(stocks, usd_rate),
+        # "currency_rates": get_currency_rate(currencies),
+        # "stock_prices": get_stock_exchange(stocks, usd_rate),
     }
 
     return result
