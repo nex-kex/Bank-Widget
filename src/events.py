@@ -133,8 +133,8 @@ def events_func(transactions_list: list[dict], currencies: list[str], stocks: li
     result = {
         "expenses": get_expenses(transactions_list),
         "income": get_incomes(transactions_list),
-        # "currency_rates": get_currency_rate(currencies),
-        # "stock_prices": get_stock_exchange(stocks, usd_rate),
+        "currency_rates": get_currency_rate(currencies),
+        "stock_prices": get_stock_exchange(stocks, usd_rate),
     }
 
     return result
