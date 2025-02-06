@@ -1,7 +1,6 @@
 import datetime
 import os
 from collections import defaultdict
-import json
 
 import requests
 from dotenv import load_dotenv
@@ -79,7 +78,7 @@ def get_currency_rate(currencies: list[str]) -> list[dict]:
     """Возвращает курс валют в рублях."""
     url = "https://www.cbr-xml-daily.ru/daily_json.js"
     response = requests.get(url).json()
-    answer= []
+    answer = []
     for currency in currencies:
         answer.append({"currency": currency, "rate": response["Valute"][currency]["Value"]})
     return answer
@@ -105,8 +104,9 @@ def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> dict:
     return answer
 
 
-def main_page_func(date: str, transactions_list: list[dict], currencies: list[str], stocks: list[str], usd_rate: float = 1) -> dict:
-
+def main_page_func(
+    date: str, transactions_list: list[dict], currencies: list[str], stocks: list[str], usd_rate: float = 1
+) -> dict:
     result = {
         "greeting": greet_user(date),
         "cards": get_cards_numbers(transactions_list),
