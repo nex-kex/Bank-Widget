@@ -1,12 +1,6 @@
 import datetime
-import os
 from collections import defaultdict
-
-import requests
-from dotenv import load_dotenv
-
-load_dotenv()
-API_KEY = os.getenv("API_KEY")
+from src.api_search import get_currency_rate, get_stock_exchange
 
 
 def greet_user(date: str) -> str:
@@ -74,39 +68,10 @@ def get_top_transactions(transactions_list: list[dict]) -> list[dict]:
     return top_transactions
 
 
-def get_currency_rate(currencies: list[str]) -> list[dict]:
-    """Возвращает курс валют в рублях."""
-    url = "https://www.cbr-xml-daily.ru/daily_json.js"
-    response = requests.get(url).json()
-    answer = []
-    for currency in currencies:
-        answer.append({"currency": currency, "rate": response["Valute"][currency]["Value"]})
-    return answer
-
-
-def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> dict:
-    """Возвращает стоимость акций в долларах. Чтобы вернуть стоимость в другой валюте,
-    необходимо присвоить курс доллара необязательному параметру usd_rate."""
-    stocks_str = ",".join(stocks)
-    url = f"http://api.marketstack.com/v2/eod?access_key={API_KEY}&symbols={stocks_str}"
-
-    response = requests.get(url).json()
-    answer: dict = {"stock_prices": []}
-
-    for i in range(len(stocks)):
-        answer["stock_prices"].append(
-            {
-                "stock": response["data"][i]["symbol"],
-                "price": response["data"][i]["open"] * usd_rate,
-            }
-        )
-
-    return answer
-
-
 def main_page_func(
     date: str, transactions_list: list[dict], currencies: list[str], stocks: list[str], usd_rate: float = 1
 ) -> dict:
+    """Основная функция страницы "Главная"."""
     result = {
         "greeting": greet_user(date),
         "cards": get_cards_numbers(transactions_list),
