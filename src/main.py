@@ -6,6 +6,8 @@ from src.main_page import main_page_func
 from src.sorting import sort_by_period
 from src.utils import read_from_xlsx
 from src.views import create_report
+from src.services import services_cashback, services_investments
+from src.search import simple_search, phone_number_search, individual_transfer_search
 
 # Валюта и акции пользователя из user_settings.json
 with open("../user_settings.json", "r", encoding="utf-8") as s:
@@ -30,3 +32,33 @@ create_report(main_page_data, "../output/main_page.json")
 current_period_operations = sort_by_period(transactions_list, str_date)
 data = events_func(current_period_operations, user_currencies, user_stocks)
 create_report(data, "../output/events.json")
+
+# ----------------------------- Выгодные категории повышенного кешбэка -----------------------------
+# Получение даты в нужном формате
+current_date = datetime.datetime.now()
+str_month = datetime.datetime.strftime(current_date, "%m")
+str_year = datetime.datetime.strftime(current_date, "%Y")
+
+cashback_by_category = services_cashback(transactions_list, str_year, str_month)
+create_report(cashback_by_category, "../output/cashback_by_category.json")
+
+# ----------------------------------------- Инвесткопилка -----------------------------------------
+# Получение даты в нужном формате
+current_date = datetime.datetime.now()
+str_year_month = datetime.datetime.strftime(current_date, "%Y-%m")
+
+investments = services_investments(str_year_month, transactions_list, 50)
+create_report({str_year_month: investments}, "../output/investments.json")
+
+# ----------------------------------------- Простой поиск -----------------------------------------
+search_line = "*"
+results = simple_search(transactions_list, search_line)
+create_report(results, "../output/simple_search.json")
+
+# ---------------------------------- Поиск по телефонным номерам ----------------------------------
+results = phone_number_search(transactions_list)
+create_report(results, "../output/phone_number_search.json")
+
+# -------------------------------- Поиск переводов физическим лицам --------------------------------
+results = individual_transfer_search(transactions_list)
+create_report(results, "../output/individual_transfer_search.json")
