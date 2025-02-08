@@ -36,7 +36,7 @@ def phone_number_search(transactions_list: list[dict]) -> list[dict]:
 
 def individual_transfer_search(transactions_list: list[dict]) -> list[dict]:
     """Функция принимает список словарей с данными о транзакциях и возвращает список тех транзакций,
-    в описании которых есть телефонные номера."""
+    которые относятся к переводам физическим лицам."""
 
     filtered_transactions = []
 

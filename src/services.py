@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 from src.sorting import sort_by_period
 
 
@@ -41,7 +42,7 @@ def services_cashback(data: list[dict], year: str, month: str) -> dict:
     return get_category_cashback(transactions_list)
 
 
-def services_investments(month:str, transactions: list[dict], limit: int) -> float:
+def services_investments(month: str, transactions: list[dict], limit: int) -> float:
     """Функция возвращает сумму, которую удалось бы отложить в «Инвесткопилку» за этот месяц."""
     date = f"{month}-01 00:00:00"
     transactions_list = sort_by_period(transactions, date)

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Union
 
 from src.api_search import get_currency_rate, get_stock_exchange
 
@@ -9,7 +8,7 @@ def get_expenses(transactions_list: list[dict]) -> dict:
 
     - Общая сумма расходов.
     - Раздел "Основные", где траты по 7 основным категориям отсортированы по убыванию, остальные траты в "Остальном".
-    - Раздел "Переводы и наличные", сумма по категориям отсортирована по убыванию."""
+    - Раздел "Переводы и наличные", где сумма по категориям отсортирована по убыванию."""
 
     category_expenses: dict = defaultdict(int)
     total_expenses = 0
