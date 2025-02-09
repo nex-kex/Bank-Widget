@@ -1,7 +1,23 @@
 import datetime
+import logging
+import os
 from collections import defaultdict
 
 from src.api_search import get_currency_rate, get_stock_exchange
+
+log_path = "../logs/main_page.log"
+
+# Устраняет ошибку отсутствия файла при импорте модуля
+if str(os.path.dirname(os.path.abspath(__name__)))[-3:] != "src":
+    log_path = log_path[1:]
+
+
+logger = logging.getLogger("main_page")
+file_handler = logging.FileHandler(log_path, "w", encoding="utf-8")
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
+logger.setLevel(logging.INFO)
 
 
 def greet_user(date: str) -> str:
@@ -13,6 +29,8 @@ def greet_user(date: str) -> str:
 
     date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     current_time = date_obj.replace(year=1, month=1, day=1)
+
+    logger.info(f"Программа приветствует пользователя в {date_obj}")
 
     if current_time >= datetime.datetime(1, 1, 1, 18, 0, 0):
         return "Добрый вечер"
@@ -28,9 +46,13 @@ def get_cards_numbers(transactions_list: list[dict]) -> list[dict]:
     """По каждой карте находит последние 4 цифры, общую сумму расходов за текущий (последний) месяц и кешбэк."""
 
     cards: dict = defaultdict(int)
-    for transaction in transactions_list:
-        if transaction["Сумма операции"] < 0:
-            cards[transaction["Номер карты"]] += transaction["Сумма операции с округлением"]
+
+    try:
+        for transaction in transactions_list:
+            if transaction["Сумма операции"] < 0:
+                cards[transaction["Номер карты"]] += transaction["Сумма операции с округлением"]
+    except KeyError as e:
+        logger.critical(f"Передана транзакция без необходимого ключа: {e}")
 
     result = []
     for key, value in cards.items():
@@ -43,6 +65,7 @@ def get_cards_numbers(transactions_list: list[dict]) -> list[dict]:
                 }
             )
 
+    logger.info(f"Обнаружены данные по {len(result)} картам")
     return result
 
 
@@ -52,21 +75,32 @@ def get_top_transactions(transactions_list: list[dict]) -> list[dict]:
     sorted_transactions_list = sorted(transactions_list, key=lambda x: x["Сумма операции"])
     top_transactions = []
 
-    for i in range(5):
-        if sorted_transactions_list[i]["Сумма операции"] < 0:
-            top_transactions.append(
-                {
-                    "date": sorted_transactions_list[i]["Дата платежа"],
-                    "amount": sorted_transactions_list[i]["Сумма операции с округлением"],
-                    "category": sorted_transactions_list[i]["Категория"],
-                    "description": sorted_transactions_list[i]["Описание"],
-                }
-            )
-        else:
-            # Если пополнения входят в топ 5, то платежей меньше 5
-            return top_transactions
+    try:
+        for i in range(5):
+            if sorted_transactions_list[i]["Сумма операции"] < 0:
+                top_transactions.append(
+                    {
+                        "date": sorted_transactions_list[i]["Дата платежа"],
+                        "amount": sorted_transactions_list[i]["Сумма операции с округлением"],
+                        "category": sorted_transactions_list[i]["Категория"],
+                        "description": sorted_transactions_list[i]["Описание"],
+                    }
+                )
+            else:
+                # Если пополнения входят в топ 5, то платежей меньше 5
+                logger.info(f"За текущий период обнаружено только {i} транз. с расходами")
+                return top_transactions
 
-    return top_transactions
+        logger.info("Успешно обнаружены топ 5 транз.")
+
+    except IndexError:
+        logger.critical("За текущий период передано менее 5 транзакций")
+
+    except KeyError as e:
+        logger.critical(f"Передана транзакция без необходимого ключа: {e}")
+
+    finally:
+        return top_transactions
 
 
 def main_page_func(
