@@ -3,6 +3,7 @@ import json
 
 from src.events import events_func
 from src.main_page import main_page_func
+from src.reports import spending_by_category, spending_by_weekday, spending_by_workday
 from src.search import individual_transfer_search, phone_number_search, simple_search
 from src.services import services_cashback, services_investments
 from src.sorting import sort_by_period
@@ -19,12 +20,12 @@ user_stocks = user_information["user_stocks"]
 current_date = datetime.datetime.now()
 str_date = datetime.datetime.strftime(current_date, "%Y-%m-%d %H:%M:%S")
 
-# Получение списка транзакций за текущий (последний) месяц
+# Получение списка транзакций
 operations_path = "../data/operations.xlsx"
 transactions_list = read_from_xlsx(operations_path)
 
 
-# --------------------------------------------- ЗАДАЧИ ---------------------------------------------
+# ------------------------------------------ ВЕБ-СТРАНИЦЫ ------------------------------------------
 
 
 # --------------------------------------- Страница "Главная" ---------------------------------------
@@ -70,3 +71,22 @@ create_report(results, "../output/phone_number_search.json")
 # -------------------------------- Поиск переводов физическим лицам --------------------------------
 results = individual_transfer_search(transactions_list)
 create_report(results, "../output/individual_transfer_search.json")
+
+
+# --------------------------------------------- ОТЧЁТЫ ---------------------------------------------
+
+
+# -------------------------------- Траты в рабочий / выходной день --------------------------------
+# Дата, для которой существуют данные в таблице
+date = "2021-01-09 15:34:23"
+
+result = spending_by_workday(transactions_list, date)
+create_report(result, "../output/spending_by_workday.json")
+
+# -------------------------------------- Траты по дням недели --------------------------------------
+result = spending_by_weekday(transactions_list, date)
+create_report(result, "../output/spending_by_weekday.json")
+
+# --------------------------------------- Траты по категории ---------------------------------------
+result = spending_by_category(transactions_list, "Супермаркеты", date)
+create_report(result, "../output/spending_by_category.json")
