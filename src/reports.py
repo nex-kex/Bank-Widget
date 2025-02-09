@@ -3,7 +3,10 @@ from collections import defaultdict
 
 from dateutil.relativedelta import relativedelta
 
+from src.views import save_report
 
+
+@save_report(filename="../output/spending_by_workday.json")
 def spending_by_workday(transactions: list[dict], date: str = "") -> dict:
     """Функция выводит средние траты в рабочий и в выходной день за последние три месяца (от переданной даты).
     Если дата не передана, то берется текущая дата."""
@@ -58,6 +61,7 @@ def spending_by_workday(transactions: list[dict], date: str = "") -> dict:
     return answer
 
 
+@save_report(filename="../output/spending_by_weekday.json")
 def spending_by_weekday(transactions: list[dict], date: str = "") -> dict:
     """Функция возвращает средние траты в каждый из дней недели за последние три месяца (от переданной даты).
     Если дата не передана, то берется текущая дата."""
@@ -96,6 +100,7 @@ def spending_by_weekday(transactions: list[dict], date: str = "") -> dict:
     return weekdays_spending
 
 
+@save_report(filename="../output/spending_by_category.json")
 def spending_by_category(transactions: list[dict], category: str, date: str = "") -> dict:
     """Функция возвращает траты по заданной категории за последние три месяца (от переданной даты).
     Если дата не передана, то берется текущая дата."""
