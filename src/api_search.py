@@ -25,11 +25,11 @@ API_KEY = os.getenv("API_KEY")
 def get_currency_rate(currencies: list[str]) -> list[dict]:
     """Возвращает курс валют в рублях."""
     url = "https://www.cbr-xml-daily.ru/daily_json.js"
-    response = requests.get(url).json()
 
     answer: list = []
 
     try:
+        response = requests.get(url).json()
 
         for currency in currencies:
             answer.append({"currency": currency, "rate": response["Valute"][currency]["Value"]})
@@ -49,11 +49,10 @@ def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> list[dict]:
     stocks_str = ",".join(stocks)
     url = f"http://api.marketstack.com/v2/eod?access_key={API_KEY}&symbols={stocks_str}"
 
-    response = requests.get(url).json()
-
     answer = []
 
     try:
+        response = requests.get(url).json()
 
         for i in range(len(stocks)):
             answer.append(
