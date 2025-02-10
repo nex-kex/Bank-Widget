@@ -1,5 +1,22 @@
+import os
+import logging
 import datetime
 import re
+
+
+log_path = "../logs/sorting.log"
+
+# Устраняет ошибку отсутствия файла при импорте модуля
+if str(os.path.dirname(os.path.abspath(__name__)))[-3:] != "src":
+    log_path = log_path[1:]
+
+
+logger = logging.getLogger("sorting")
+file_handler = logging.FileHandler(log_path, "w", encoding="utf-8")
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
+logger.setLevel(logging.INFO)
 
 
 def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK", period: str = "M") -> list[dict]:
@@ -18,20 +35,30 @@ def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK",
     elif period == "Y":
         string_period = current_period[3:7]  # "YYYY"
 
-    if any(
-        string_period in datetime.datetime.strptime(x["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime("%m.%Y-%W")
-        for x in transactions_list
+    try:
+        if any(
+            string_period in datetime.datetime.strptime(x["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime("%m.%Y-%W")
+            for x in transactions_list
     ):
-        for transaction in transactions_list:
-            transaction_date = datetime.datetime.strptime(
-                str(transaction["Дата операции"]), "%d.%m.%Y %H:%M:%S"
-            ).strftime("%m.%Y-%W")
-            if re.search(string_period, transaction_date) and transaction["Статус"] == status:
-                current_period_transactions.append(transaction)
-    else:
-        last_date = datetime.datetime.strptime(transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-        return sort_by_period(transactions_list, last_date, status=status, period=period)
+            for transaction in transactions_list:
+                transaction_date = datetime.datetime.strptime(
+                    str(transaction["Дата операции"]), "%d.%m.%Y %H:%M:%S"
+                ).strftime("%m.%Y-%W")
+                if re.search(string_period, transaction_date) and transaction["Статус"] == status:
+                    current_period_transactions.append(transaction)
+        else:
+            last_date = datetime.datetime.strptime(transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
 
+            logger.info(f"Не найдено транзакций для {date}. Поиск транзакций для {last_date}")
+            
+            return sort_by_period(transactions_list, last_date, status=status, period=period)
+
+    except KeyError as e:
+        logger.warning(f"Передана транзакция без необходимого ключа: {e}")
+        continue 
+
+    logger.info(f"Найдено {len(current_period_transactions)} транзакций за переданный период")
+    
     return current_period_transactions
