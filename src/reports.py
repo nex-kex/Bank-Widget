@@ -139,7 +139,7 @@ def spending_by_weekday(transactions: list[dict], date: str = "") -> dict:
             weekdays_avg_spending[day] = 0
             logger.info(f"Для {day} не было найдено трат")
 
-    return weekdays_spending
+    return weekdays_avg_spending
 
 
 @save_report(filename="../output/spending_by_category.json")

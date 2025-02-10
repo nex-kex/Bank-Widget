@@ -25,7 +25,7 @@ def get_category_cashback(transactions_list: list[dict]) -> dict:
 
     for transaction in transactions_list:
         if transaction.get("Категория") and str(transaction["Категория"]) != "nan":
-            if transaction.get("Кешбэк") and str(transaction["Кэшбэк"]) != "nan":
+            if transaction.get("Кэшбэк") and str(transaction["Кэшбэк"]) != "nan":
                 category_cashback[transaction["Категория"]] += transaction["Кэшбэк"]
 
     if len(category_cashback) == 0:
