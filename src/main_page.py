@@ -53,8 +53,8 @@ def get_cards_numbers(transactions_list: list[dict]) -> list[dict]:
                 cards[transaction["Номер карты"]] += transaction["Сумма операции с округлением"]
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
-    
+            continue
+
     result = []
     for key, value in cards.items():
         if str(key) != "nan":
@@ -94,15 +94,14 @@ def get_top_transactions(transactions_list: list[dict]) -> list[dict]:
 
         except IndexError:
             logger.warning("За текущий период передано менее 5 транзакций")
-            continue 
-        
+            continue
+
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
-    
-    finally:
-        logger.info("Успешно обнаружены топ 5 транз.")
-        return top_transactions
+            continue
+
+    logger.info("Успешно обнаружены топ 5 транз.")
+    return top_transactions
 
 
 def main_page_func(

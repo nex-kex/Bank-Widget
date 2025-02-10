@@ -1,7 +1,7 @@
-import os
 import logging
-import pandas as pd
+import os
 
+import pandas as pd
 
 log_path = "../logs/utils.log"
 
@@ -23,8 +23,8 @@ def read_from_xlsx(xlsx_file: str) -> list[dict]:
     try:
         data = pd.read_excel(xlsx_file)
         transactions = data.to_dict(orient="records")
-        
+
     except Exception as e:
-        logger.critical(f"Произошла ошибка при чтении XLSX-файла: {e.reason}")
+        logger.critical(f"Произошла ошибка при чтении XLSX-файла: {e}")
 
     return transactions

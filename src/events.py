@@ -39,8 +39,8 @@ def get_expenses(transactions_list: list[dict]) -> dict:
 
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
-    
+            continue
+
     # Сортировка названий категорий по убыванию суммы расходов в них
     sorted_categories = sorted(category_expenses, key=lambda x: category_expenses[x], reverse=True)
 
@@ -63,7 +63,7 @@ def get_expenses(transactions_list: list[dict]) -> dict:
             )
         except IndexError:
             logger.warning("За текущий период получено меньше 7 категорий расходов")
-            continue 
+            continue
     # Создание категории "Остальное" и добавление в неё остальных расходов
     answer_main.append(
         {
@@ -71,13 +71,13 @@ def get_expenses(transactions_list: list[dict]) -> dict:
             "amount": 0,
         }
     )
-    
+
     for i in range(7, len(sorted_categories)):
         answer_main[7]["amount"] += category_expenses[sorted_categories[i]]
     answer_main[7]["amount"] = round(answer_main[7]["amount"], 2)
 
     answer["main"] = answer_main
-    
+
     # Добавление раздела "Наличные и переводы" по убыванию в них суммы расходов
     for category in sorted_categories:
         if category == "Наличные":
@@ -138,8 +138,8 @@ def get_incomes(transactions_list: list[dict]) -> dict:
 
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
-        
+            continue
+
     # Сортировка названий категорий по убыванию суммы поступлений в них
     sorted_categories = sorted(category_incomes, key=lambda x: category_incomes[x], reverse=True)
 

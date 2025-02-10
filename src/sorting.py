@@ -1,8 +1,7 @@
-import os
-import logging
 import datetime
+import logging
+import os
 import re
-
 
 log_path = "../logs/sorting.log"
 
@@ -39,7 +38,7 @@ def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK",
         if any(
             string_period in datetime.datetime.strptime(x["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime("%m.%Y-%W")
             for x in transactions_list
-    ):
+        ):
             for transaction in transactions_list:
                 transaction_date = datetime.datetime.strptime(
                     str(transaction["Дата операции"]), "%d.%m.%Y %H:%M:%S"
@@ -47,18 +46,17 @@ def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK",
                 if re.search(string_period, transaction_date) and transaction["Статус"] == status:
                     current_period_transactions.append(transaction)
         else:
-            last_date = datetime.datetime.strptime(transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
+            last_date = datetime.datetime.strptime(
+                transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S"
+            ).strftime("%Y-%m-%d %H:%M:%S")
 
             logger.info(f"Не найдено транзакций для {date}. Поиск транзакций для {last_date}")
-            
+
             return sort_by_period(transactions_list, last_date, status=status, period=period)
 
     except KeyError as e:
-        logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-        continue 
+        logger.critical(f"Передана транзакция без необходимого ключа: {e}")
 
     logger.info(f"Найдено {len(current_period_transactions)} транзакций за переданный период")
-    
+
     return current_period_transactions

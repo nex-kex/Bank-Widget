@@ -1,9 +1,8 @@
-import os
-import logging
 import json
+import logging
+import os
 from functools import wraps
 from typing import Any, Callable
-
 
 log_path = "../logs/views.log"
 
@@ -26,7 +25,7 @@ def create_report(data: dict | list[dict], file_path: str) -> None:
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
     except Exception as e:
-        logger.critical(f"Произошла ошибка при записи в файл: {e.reason}")
+        logger.critical(f"Произошла ошибка при записи в файл: {e}")
 
 
 def save_report(filename: str = "") -> Callable:
@@ -40,9 +39,11 @@ def save_report(filename: str = "") -> Callable:
 
             # Проверка на наличие ошибок
             try:
-                result = func(*args, **kwargs)
+                func(*args, **kwargs)
             except Exception as e:
-                logger.critical(f"Произошла ошибка при выполнении функции {func.__name__}: {e.reason}"
+                logger.critical(f"Произошла ошибка при выполнении функции {func.__name__}: {e}")
+
+            result = func(*args, **kwargs)
 
             # Запись в файл
             if filename == "":

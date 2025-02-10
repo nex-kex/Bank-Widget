@@ -1,10 +1,11 @@
 import datetime
+import logging
+import os
 from collections import defaultdict
 
 from dateutil.relativedelta import relativedelta
 
 from src.views import save_report
-
 
 log_path = "../logs/reports.log"
 
@@ -31,7 +32,7 @@ def spending_by_workday(transactions: list[dict], date: str = "") -> dict:
         date_obj = datetime.datetime.now()
         logger.info(f"Дата для поиска не передана. Поиск ведётся от {date_obj.strftime("%d-%m-%Y")}")
     else:
-        date_obj = date.strftime("%Y-%m-%d %H:%M:%S")
+        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         logger.info(f"Ведётся поиск от {date[:10]}")
 
     dates = []
@@ -64,20 +65,20 @@ def spending_by_workday(transactions: list[dict], date: str = "") -> dict:
 
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
-    
+            continue
+
     if len(workdays_transactions):
         avg_workday_spending = round(sum(workdays_transactions) / len(workdays_transactions), 2)
         logger.info("Успешно получена средние траты в будние дни")
-    
+
     else:
         avg_workday_spending = 0
         logger.info("Трат в будние дни не было")
-    
+
     if len(weekends_transactions):
         avg_weekend_spending = round(sum(weekends_transactions) / len(weekends_transactions), 2)
         logger.info("Успешно получена средние траты в выходные дни")
-    
+
     else:
         avg_weekend_spending = 0
         logger.info("Трат в выходные дни не было")
@@ -100,7 +101,7 @@ def spending_by_weekday(transactions: list[dict], date: str = "") -> dict:
         date_obj = datetime.datetime.now()
         logger.info(f"Дата для поиска не передана. Поиск ведётся от {date_obj.strftime("%d-%m-%Y")}")
     else:
-        date_obj = date.strftime("%Y-%m-%d %H:%M:%S")
+        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         logger.info(f"Ведётся поиск от {date[:10]}")
 
     dates = []
@@ -112,6 +113,7 @@ def spending_by_weekday(transactions: list[dict], date: str = "") -> dict:
         dates.append(date_i_str)
 
     weekdays_spending = defaultdict(list)
+    weekdays_avg_spending = defaultdict(float)
 
     # Сортировка расходов за последние 3 месяца по спискам (выходные и рабочие дни)
     for transaction in transactions:
@@ -128,13 +130,13 @@ def spending_by_weekday(transactions: list[dict], date: str = "") -> dict:
 
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
-    
+            continue
+
     for day, sums in weekdays_spending.items():
         if len(sums):
-            weekdays_spending[day] = round(sum(sums) / len(sums), 2)
+            weekdays_avg_spending[day] = round(sum(sums) / len(sums), 2)
         else:
-            weekdays_spending[day] = 0
+            weekdays_avg_spending[day] = 0
             logger.info(f"Для {day} не было найдено трат")
 
     return weekdays_spending
@@ -150,7 +152,7 @@ def spending_by_category(transactions: list[dict], category: str, date: str = ""
         date_obj = datetime.datetime.now()
         logger.info(f"Дата для поиска не передана. Поиск ведётся от {date_obj.strftime("%d-%m-%Y")}")
     else:
-        date_obj = date.strftime("%Y-%m-%d %H:%M:%S")
+        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         logger.info(f"Ведётся поиск от {date[:10]}")
 
     dates = []
@@ -165,7 +167,7 @@ def spending_by_category(transactions: list[dict], category: str, date: str = ""
 
     # Сортировка расходов за последние 3 месяца по спискам (выходные и рабочие дни)
     for transaction in transactions:
-        try: 
+        try:
             if any(date in transaction["Дата операции"] for date in dates):
 
                 # Проверка на то, что это расход и он был успешно выполнен
@@ -176,8 +178,8 @@ def spending_by_category(transactions: list[dict], category: str, date: str = ""
 
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
-    
+            continue
+
     answer = {
         category: round(category_spending, 2),
     }

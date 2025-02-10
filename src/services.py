@@ -1,9 +1,8 @@
-import os
 import logging
+import os
 from collections import defaultdict
 
 from src.sorting import sort_by_period
-
 
 log_path = "../logs/services.log"
 
@@ -31,7 +30,7 @@ def get_category_cashback(transactions_list: list[dict]) -> dict:
 
     if len(category_cashback) == 0:
         logger.warning("За текущий период не получено кешбэка по найденным категориям.")
-    
+
     # Сортировка названий категорий по убыванию суммы кешбэка в них
     sorted_categories = sorted(category_cashback, key=lambda x: category_cashback[x], reverse=True)
 
@@ -56,7 +55,7 @@ def count_investments(transactions_list: list[dict], limit: int) -> float:
 
     except KeyError as e:
         logger.critical(f"Получена транзакция без необходимого ключа: {e}")
-    
+
     return investments
 
 

@@ -1,7 +1,6 @@
-import os
 import logging
+import os
 import re
-
 
 log_path = "../logs/search.log"
 
@@ -16,7 +15,6 @@ file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(me
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
-
 
 
 def simple_search(transactions_list: list[dict], search_info: str) -> list[dict]:
@@ -39,10 +37,10 @@ def simple_search(transactions_list: list[dict], search_info: str) -> list[dict]
 
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
+            continue
 
     logger.info(f"Получено {len(filtered_transactions)} транзакций из {len(transactions_list)}.")
-    
+
     return filtered_transactions
 
 
@@ -56,13 +54,13 @@ def phone_number_search(transactions_list: list[dict]) -> list[dict]:
         try:
             if re.search(r"\+\d \d{3} \d{3}-\d{2}-\d{2}", transaction["Описание"]):
                 filtered_transactions.append(transaction)
-      
+
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
+            continue
 
     logger.info(f"Получено {len(filtered_transactions)} транзакций из {len(transactions_list)}.")
-    
+
     return filtered_transactions
 
 
@@ -80,8 +78,8 @@ def individual_transfer_search(transactions_list: list[dict]) -> list[dict]:
 
         except KeyError as e:
             logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue 
+            continue
 
     logger.info(f"Получено {len(filtered_transactions)} транзакций из {len(transactions_list)}.")
-    
+
     return filtered_transactions

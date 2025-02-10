@@ -27,42 +27,34 @@ def get_currency_rate(currencies: list[str]) -> list[dict]:
     url = "https://www.cbr-xml-daily.ru/daily_json.js"
     response = requests.get(url).json()
 
-    # Статус-код из ответа
-    status_code = response.status_code
+    answer: list = []
 
-    answer = []
-    
-    # Успешный запрос
-    if status_code == 200:
-        answer = []
+    try:
 
         for currency in currencies:
             answer.append({"currency": currency, "rate": response["Valute"][currency]["Value"]})
 
         logger.info("Успешно получен ответ на API-запрос")
 
-    else:
-        logger.critical(f"API-запрос неуспешен. Возможная причина: {response.reason}")
+    except Exception as e:
+        logger.critical(f"API-запрос неуспешен. Возможная причина: {e}")
 
-    return answer 
+    return answer
 
 
 def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> list[dict]:
     """Возвращает стоимость акций в долларах. Чтобы вернуть стоимость в другой валюте,
     необходимо присвоить курс доллара необязательному параметру usd_rate."""
+
     stocks_str = ",".join(stocks)
     url = f"http://api.marketstack.com/v2/eod?access_key={API_KEY}&symbols={stocks_str}"
 
     response = requests.get(url).json()
 
-    # Статус-код из ответа
-    status_code = response.status_code
-
     answer = []
-    
-    # Успешный запрос
-    if status_code == 200:
-       
+
+    try:
+
         for i in range(len(stocks)):
             answer.append(
                 {
@@ -73,7 +65,7 @@ def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> list[dict]:
 
         logger.info("Успешно получен ответ на API-запрос")
 
-    else:
-        logger.critical(f"API-запрос неуспешен. Возможная причина: {response.reason}")
-   
-    return answer 
+    except Exception as e:
+        logger.critical(f"API-запрос неуспешен. Возможная причина: {e}")
+
+    return answer
