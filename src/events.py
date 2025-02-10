@@ -29,17 +29,18 @@ def get_expenses(transactions_list: list[dict]) -> dict:
     category_expenses: dict = defaultdict(int)
     total_expenses = 0
 
-    try:
-        for transaction in transactions_list:
+    for transaction in transactions_list:
+        try:
             total_expenses += transaction["Сумма операции с округлением"]
 
             # Проверка на то, что это расход и он был успешно выполнен
             if transaction["Статус"] == "OK" and transaction["Сумма операции"] < 0:
                 category_expenses[transaction["Категория"]] += transaction["Сумма операции с округлением"]
 
-    except KeyError as e:
-        logger.critical(f"Передана транзакция без необходимого ключа: {e}")
-
+        except KeyError as e:
+            logger.warning(f"Передана транзакция без необходимого ключа: {e}")
+            continue 
+    
     # Сортировка названий категорий по убыванию суммы расходов в них
     sorted_categories = sorted(category_expenses, key=lambda x: category_expenses[x], reverse=True)
 
@@ -51,30 +52,32 @@ def get_expenses(transactions_list: list[dict]) -> dict:
     answer_main = []
     answer_transfers_and_cash = []
 
-    try:
-        # Заполнение данных по 7 основным категориям
-        for i in range(7):
+    # Заполнение данных по 7 основным категориям
+    for i in range(7):
+        try:
             answer_main.append(
                 {
                     "category": sorted_categories[i],
                     "amount": round(category_expenses[sorted_categories[i]], 2),
                 }
             )
-        # Создание категории "Остальное" и добавление в неё остальных расходов
-        answer_main.append(
-            {
-                "category": "Остальное",
-                "amount": 0,
-            }
-        )
-        for i in range(7, len(sorted_categories)):
-            answer_main[7]["amount"] += category_expenses[sorted_categories[i]]
-        answer_main[7]["amount"] = round(answer_main[7]["amount"], 2)
+        except IndexError:
+            logger.warning("За текущий период получено меньше 7 категорий расходов")
+            continue 
+    # Создание категории "Остальное" и добавление в неё остальных расходов
+    answer_main.append(
+        {
+            "category": "Остальное",
+            "amount": 0,
+        }
+    )
+    
+    for i in range(7, len(sorted_categories)):
+        answer_main[7]["amount"] += category_expenses[sorted_categories[i]]
+    answer_main[7]["amount"] = round(answer_main[7]["amount"], 2)
 
-        answer["main"] = answer_main
-    except IndexError:
-        logger.critical("За текущий период получено меньше 7 категорий расходов")
-
+    answer["main"] = answer_main
+    
     # Добавление раздела "Наличные и переводы" по убыванию в них суммы расходов
     for category in sorted_categories:
         if category == "Наличные":
@@ -107,7 +110,7 @@ def get_expenses(transactions_list: list[dict]) -> dict:
             break
 
     if len(answer_transfers_and_cash) == 0:
-        logger.warning("За текущий период не было переводов и трат наличными")
+        logger.info("За текущий период не было переводов и трат наличными")
 
     else:
         logger.info("Успешно получены переводы и траты наличными")
@@ -125,17 +128,18 @@ def get_incomes(transactions_list: list[dict]) -> dict:
     category_incomes: dict = defaultdict(int)
     total_incomes = 0
 
-    try:
-        for transaction in transactions_list:
+    for transaction in transactions_list:
+        try:
             total_incomes += transaction["Сумма операции с округлением"]
 
             # Проверка на то, что это поступление и оно было успешно выполнен
             if transaction["Статус"] == "OK" and transaction["Сумма операции"] > 0:
                 category_incomes[transaction["Категория"]] += transaction["Сумма операции с округлением"]
 
-    except KeyError as e:
-        logger.critical(f"Передана транзакция без необходимого ключа: {e}")
-
+        except KeyError as e:
+            logger.warning(f"Передана транзакция без необходимого ключа: {e}")
+            continue 
+        
     # Сортировка названий категорий по убыванию суммы поступлений в них
     sorted_categories = sorted(category_incomes, key=lambda x: category_incomes[x], reverse=True)
 
