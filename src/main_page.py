@@ -47,13 +47,14 @@ def get_cards_numbers(transactions_list: list[dict]) -> list[dict]:
 
     cards: dict = defaultdict(int)
 
-    try:
-        for transaction in transactions_list:
+    for transaction in transactions_list:
+        try:
             if transaction["Сумма операции"] < 0:
                 cards[transaction["Номер карты"]] += transaction["Сумма операции с округлением"]
-    except KeyError as e:
-        logger.critical(f"Передана транзакция без необходимого ключа: {e}")
-
+        except KeyError as e:
+            logger.warning(f"Передана транзакция без необходимого ключа: {e}")
+            continue 
+    
     result = []
     for key, value in cards.items():
         if str(key) != "nan":
@@ -75,8 +76,8 @@ def get_top_transactions(transactions_list: list[dict]) -> list[dict]:
     sorted_transactions_list = sorted(transactions_list, key=lambda x: x["Сумма операции"])
     top_transactions = []
 
-    try:
-        for i in range(5):
+    for i in range(5):
+        try:
             if sorted_transactions_list[i]["Сумма операции"] < 0:
                 top_transactions.append(
                     {
@@ -91,15 +92,16 @@ def get_top_transactions(transactions_list: list[dict]) -> list[dict]:
                 logger.info(f"За текущий период обнаружено только {i} транз. с расходами")
                 return top_transactions
 
-        logger.info("Успешно обнаружены топ 5 транз.")
-
-    except IndexError:
-        logger.critical("За текущий период передано менее 5 транзакций")
-
-    except KeyError as e:
-        logger.critical(f"Передана транзакция без необходимого ключа: {e}")
-
+        except IndexError:
+            logger.warning("За текущий период передано менее 5 транзакций")
+            continue 
+        
+        except KeyError as e:
+            logger.warning(f"Передана транзакция без необходимого ключа: {e}")
+            continue 
+    
     finally:
+        logger.info("Успешно обнаружены топ 5 транз.")
         return top_transactions
 
 
