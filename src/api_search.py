@@ -30,6 +30,8 @@ def get_currency_rate(currencies: list[str]) -> list[dict]:
     # Статус-код из ответа
     status_code = response.status_code
 
+    answer = []
+    
     # Успешный запрос
     if status_code == 200:
         answer = []
@@ -38,11 +40,11 @@ def get_currency_rate(currencies: list[str]) -> list[dict]:
             answer.append({"currency": currency, "rate": response["Valute"][currency]["Value"]})
 
         logger.info("Успешно получен ответ на API-запрос")
-        return answer
 
     else:
         logger.critical(f"API-запрос неуспешен. Возможная причина: {response.reason}")
-        return []
+
+    return answer 
 
 
 def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> list[dict]:
@@ -56,10 +58,11 @@ def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> list[dict]:
     # Статус-код из ответа
     status_code = response.status_code
 
+    answer = []
+    
     # Успешный запрос
     if status_code == 200:
-        answer = []
-
+       
         for i in range(len(stocks)):
             answer.append(
                 {
@@ -69,8 +72,8 @@ def get_stock_exchange(stocks: list[str], usd_rate: float = 1) -> list[dict]:
             )
 
         logger.info("Успешно получен ответ на API-запрос")
-        return answer
 
     else:
         logger.critical(f"API-запрос неуспешен. Возможная причина: {response.reason}")
-        return []
+   
+    return answer 
