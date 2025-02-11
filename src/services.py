@@ -56,7 +56,7 @@ def count_investments(transactions_list: list[dict], limit: int) -> float:
     except KeyError as e:
         logger.critical(f"Получена транзакция без необходимого ключа: {e}")
 
-    return investments
+    return round(investments, 2)
 
 
 def services_cashback(data: list[dict], year: str, month: str) -> dict:
