@@ -133,7 +133,7 @@ def spending_by_weekday(transactions: list[dict], date: str = "") -> dict:
             continue
 
     for day, sums in weekdays_spending.items():
-            weekdays_avg_spending[day] = round(sum(sums) / len(sums), 2)
+        weekdays_avg_spending[day] = round(sum(sums) / len(sums), 2)
 
     return weekdays_avg_spending
 

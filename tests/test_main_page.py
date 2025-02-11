@@ -1,11 +1,19 @@
+import pytest
+
 from src.main_page import get_cards_numbers, get_top_transactions, greet_user
 
 
-def test_greet_user():
-    assert greet_user("2025-02-11 05:59:59") == "Доброй ночи"
-    assert greet_user("2025-02-11 06:00:00") == "Доброе утро"
-    assert greet_user("2025-02-11 12:30:00") == "Добрый день"
-    assert greet_user("2025-02-11 19:00:00") == "Добрый вечер"
+@pytest.mark.parametrize(
+    "date, greeting",
+    [
+        ("2025-02-11 05:59:59", "Доброй ночи"),
+        ("2025-02-11 06:00:00", "Доброе утро"),
+        ("2025-02-11 12:30:00", "Добрый день"),
+        ("2025-02-11 19:00:00", "Добрый вечер"),
+    ],
+)
+def test_greet_user(date, greeting):
+    assert greet_user(date) == greeting
 
 
 def test_get_cards_numbers(short_list_of_transactions):

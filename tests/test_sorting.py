@@ -1,11 +1,19 @@
+import pytest
+
 from src.sorting import sort_by_period
 
 
-def test_sort_by_period_empty():
-    assert sort_by_period([], "2025-02-11 21:27:36", period="W") == []
-    assert sort_by_period([], "2025-02-11 21:27:36", period="M") == []
-    assert sort_by_period([], "2025-02-11 21:27:36", period="Y") == []
-    assert sort_by_period([], "2025-02-11 21:27:36", period="ALL") == []
+@pytest.mark.parametrize(
+    "my_list, date, period",
+    [
+        ([], "2025-02-11 21:27:36", "W"),
+        ([], "2025-02-11 21:27:36", "M"),
+        ([], "2025-02-11 21:27:36", "Y"),
+        ([], "2025-02-11 21:27:36", "ALL"),
+    ],
+)
+def test_sort_by_period_empty(my_list, date, period):
+    assert sort_by_period(my_list, date, period) == []
 
 
 def test_sort_by_period(short_list_of_transactions):
