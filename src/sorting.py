@@ -34,28 +34,30 @@ def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK",
     elif period == "Y":
         string_period = current_period[3:7]  # "YYYY"
 
-    try:
-        if any(
-            string_period in datetime.datetime.strptime(x["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime("%m.%Y-%W")
-            for x in transactions_list
-        ):
-            for transaction in transactions_list:
-                transaction_date = datetime.datetime.strptime(
-                    str(transaction["Дата операции"]), "%d.%m.%Y %H:%M:%S"
-                ).strftime("%m.%Y-%W")
-                if re.search(string_period, transaction_date) and transaction["Статус"] == status:
-                    current_period_transactions.append(transaction)
-        else:
-            last_date = datetime.datetime.strptime(
-                transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S"
-            ).strftime("%Y-%m-%d %H:%M:%S")
+    if len(transactions_list) != 0:
 
-            logger.info(f"Не найдено транзакций для {date}. Поиск транзакций для {last_date}")
+        try:
+            if any(
+                string_period in datetime.datetime.strptime(x["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime("%m.%Y-%W")
+                for x in transactions_list
+            ):
+                for transaction in transactions_list:
+                    transaction_date = datetime.datetime.strptime(
+                        str(transaction["Дата операции"]), "%d.%m.%Y %H:%M:%S"
+                    ).strftime("%m.%Y-%W")
+                    if re.search(string_period, transaction_date) and transaction["Статус"] == status:
+                        current_period_transactions.append(transaction)
+            else:
+                last_date = datetime.datetime.strptime(
+                    transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S"
+                ).strftime("%Y-%m-%d %H:%M:%S")
 
-            return sort_by_period(transactions_list, last_date, status=status, period=period)
+                logger.info(f"Не найдено транзакций для {date}. Поиск транзакций для {last_date}")
 
-    except KeyError as e:
-        logger.critical(f"Передана транзакция без необходимого ключа: {e}")
+                return sort_by_period(transactions_list, last_date, status=status, period=period)
+
+        except KeyError as e:
+            logger.critical(f"Передана транзакция без необходимого ключа: {e}")
 
     logger.info(f"Найдено {len(current_period_transactions)} транзакций за переданный период")
 

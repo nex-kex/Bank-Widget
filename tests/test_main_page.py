@@ -30,7 +30,7 @@ def test_get_top_transactions_empty():
 
 def test_get_top_transactions(short_list_of_transactions):
     assert get_top_transactions(short_list_of_transactions) == [
-        {"date": "10.01.2018", "amount": 87068.0, "category": "nan", "description": "Перевод с карты"},
+        {"date": "10.01.2021", "amount": 87068.0, "category": "nan", "description": "Перевод с карты"},
         {"date": "01.07.2018", "amount": 3000.0, "category": "Переводы", "description": "Анастасия Л."},
         {"date": "04.11.2018", "amount": 1065.9, "category": "Супермаркеты", "description": "Пятёрочка"},
         {"date": "04.12.2018", "amount": 1025.0, "category": "Топливо", "description": "Pskov AZS 12 K2"},
