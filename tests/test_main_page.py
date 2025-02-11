@@ -1,4 +1,4 @@
-from src.main_page import greet_user, get_cards_numbers, get_top_transactions
+from src.main_page import get_cards_numbers, get_top_transactions, greet_user
 
 
 def test_greet_user():
@@ -10,11 +10,7 @@ def test_greet_user():
 
 def test_get_cards_numbers(short_list_of_transactions):
     assert get_cards_numbers(short_list_of_transactions) == [
-        {
-            "last_digits": "5441",
-            "total_spent": 87068.0,
-            "cashback": 870.68
-        },
+        {"last_digits": "5441", "total_spent": 87068.0, "cashback": 870.68},
         {
             "last_digits": "7197",
             "total_spent": 6753.95,
@@ -34,11 +30,12 @@ def test_get_top_transactions_empty():
 
 def test_get_top_transactions(short_list_of_transactions):
     assert get_top_transactions(short_list_of_transactions) == [
-        {'date': '10.01.2018', 'amount': 87068.0, 'category': 'nan', 'description': 'Перевод с карты'},
-        {'date': '01.07.2018', 'amount': 3000.0, 'category': 'Переводы', 'description': 'Анастасия Л.'},
-        {'date': '04.11.2018', 'amount': 1065.9, 'category': 'Супермаркеты', 'description': 'Пятёрочка'},
-        {'date': '04.12.2018', 'amount': 1025.0, 'category': 'Топливо', 'description': 'Pskov AZS 12 K2'},
-        {'date': '08.02.2019', 'amount': 1004.9, 'category': 'Различные товары', 'description': 'Torgovyy Dom* Mayak'}]
+        {"date": "10.01.2018", "amount": 87068.0, "category": "nan", "description": "Перевод с карты"},
+        {"date": "01.07.2018", "amount": 3000.0, "category": "Переводы", "description": "Анастасия Л."},
+        {"date": "04.11.2018", "amount": 1065.9, "category": "Супермаркеты", "description": "Пятёрочка"},
+        {"date": "04.12.2018", "amount": 1025.0, "category": "Топливо", "description": "Pskov AZS 12 K2"},
+        {"date": "08.02.2019", "amount": 1004.9, "category": "Различные товары", "description": "Torgovyy Dom* Mayak"},
+    ]
 
 
 def test_get_top_transactions_income():
@@ -57,6 +54,6 @@ def test_get_top_transactions_income():
                 "Категория": "Переводы",
                 "Описание": "Анастасия Л.",
                 "Сумма операции с округлением": 3000.0,
-            }
+            },
         ]
-    ) == [{'date': '01.07.2018', 'amount': 3000.0, 'category': 'Переводы', 'description': 'Анастасия Л.'}]
+    ) == [{"date": "01.07.2018", "amount": 3000.0, "category": "Переводы", "description": "Анастасия Л."}]

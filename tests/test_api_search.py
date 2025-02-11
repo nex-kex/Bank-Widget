@@ -1,9 +1,9 @@
-from src.api_search import get_currency_rate, get_stock_exchange
 import os
 from unittest.mock import patch
-import pytest
 
 from dotenv import load_dotenv
+
+from src.api_search import get_currency_rate, get_stock_exchange
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")

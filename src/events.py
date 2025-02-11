@@ -31,10 +31,10 @@ def get_expenses(transactions_list: list[dict]) -> dict:
 
     for transaction in transactions_list:
         try:
-            total_expenses += transaction["Сумма операции с округлением"]
 
             # Проверка на то, что это расход и он был успешно выполнен
             if transaction["Статус"] == "OK" and transaction["Сумма операции"] < 0:
+                total_expenses += transaction["Сумма операции с округлением"]
                 category_expenses[transaction["Категория"]] += transaction["Сумма операции с округлением"]
 
         except KeyError as e:
@@ -74,7 +74,7 @@ def get_expenses(transactions_list: list[dict]) -> dict:
 
     for i in range(7, len(sorted_categories)):
         answer_main[7]["amount"] += category_expenses[sorted_categories[i]]
-    answer_main[7]["amount"] = round(answer_main[7]["amount"], 2)
+    answer_main[-1]["amount"] = round(answer_main[-1]["amount"], 2)
 
     answer["main"] = answer_main
 
@@ -130,10 +130,10 @@ def get_incomes(transactions_list: list[dict]) -> dict:
 
     for transaction in transactions_list:
         try:
-            total_incomes += transaction["Сумма операции с округлением"]
 
             # Проверка на то, что это поступление и оно было успешно выполнен
             if transaction["Статус"] == "OK" and transaction["Сумма операции"] > 0:
+                total_incomes += transaction["Сумма операции с округлением"]
                 category_incomes[transaction["Категория"]] += transaction["Сумма операции с округлением"]
 
         except KeyError as e:
