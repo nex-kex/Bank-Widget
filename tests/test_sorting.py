@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from src.sorting import sort_by_period
 
 

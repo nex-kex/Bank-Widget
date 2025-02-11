@@ -133,11 +133,7 @@ def spending_by_weekday(transactions: list[dict], date: str = "") -> dict:
             continue
 
     for day, sums in weekdays_spending.items():
-        if len(sums):
             weekdays_avg_spending[day] = round(sum(sums) / len(sums), 2)
-        else:
-            weekdays_avg_spending[day] = 0
-            logger.info(f"Для {day} не было найдено трат")
 
     return weekdays_avg_spending
 
@@ -173,7 +169,7 @@ def spending_by_category(transactions: list[dict], category: str, date: str = ""
                 # Проверка на то, что это расход и он был успешно выполнен
                 if transaction["Статус"] == "OK" and transaction["Сумма операции"] < 0:
 
-                    if transaction.get("Категория") and transaction["Категория"] == category:
+                    if transaction.get("Категория") and transaction["Категория"].lower() == category.lower():
                         category_spending += transaction["Сумма операции с округлением"]
 
         except KeyError as e:
@@ -181,7 +177,7 @@ def spending_by_category(transactions: list[dict], category: str, date: str = ""
             continue
 
     answer = {
-        category: round(category_spending, 2),
+        category.capitalize(): round(category_spending, 2),
     }
 
     return answer

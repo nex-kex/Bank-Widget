@@ -38,7 +38,8 @@ def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK",
 
         try:
             if any(
-                string_period in datetime.datetime.strptime(x["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime("%m.%Y-%W")
+                string_period
+                in datetime.datetime.strptime(x["Дата операции"], "%d.%m.%Y %H:%M:%S").strftime("%m.%Y-%W")
                 for x in transactions_list
             ):
                 for transaction in transactions_list:

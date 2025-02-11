@@ -6,7 +6,7 @@ def test_simple_search_empty():
 
 
 def test_simple_search(short_list_of_transactions):
-    assert simple_search(short_list_of_transactions, "анастасия" ) == [
+    assert simple_search(short_list_of_transactions, "анастасия") == [
         {
             "Дата операции": "01.07.2018 12:49:53",
             "Дата платежа": "01.07.2018",
@@ -28,9 +28,7 @@ def test_simple_search(short_list_of_transactions):
 
 
 def test_simple_search_no_category():
-    assert simple_search([{"Описание": "Анастасия Л."}], "анастасия" ) == [
-        {"Описание": "Анастасия Л."}
-    ]
+    assert simple_search([{"Описание": "Анастасия Л."}], "анастасия") == [{"Описание": "Анастасия Л."}]
 
 
 def test_phone_number_search_empty():
