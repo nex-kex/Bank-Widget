@@ -1,6 +1,7 @@
 import logging
 import os
 from collections import defaultdict
+import pandas as pd
 
 from src.api_search import get_currency_rate, get_stock_exchange
 
@@ -19,19 +20,20 @@ logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
 
 
-def get_expenses(transactions_list: list[dict]) -> dict:
+def get_expenses(transactions: pd.DataFrame) -> dict:
     """Возвращает словарь вида:
 
     - Общая сумма расходов.
     - Раздел "Основные", где траты по 7 основным категориям отсортированы по убыванию, остальные траты в "Остальном".
     - Раздел "Переводы и наличные", где сумма по категориям отсортирована по убыванию."""
 
+    transactions_list = transactions.to_dict(orient='records')
+
     category_expenses: dict = defaultdict(int)
     total_expenses = 0
 
     for transaction in transactions_list:
         try:
-
             # Проверка на то, что это расход и он был успешно выполнен
             if transaction["Статус"] == "OK" and transaction["Сумма операции"] < 0:
                 total_expenses += transaction["Сумма операции с округлением"]
@@ -119,11 +121,13 @@ def get_expenses(transactions_list: list[dict]) -> dict:
     return answer
 
 
-def get_incomes(transactions_list: list[dict]) -> dict:
+def get_incomes(transactions: pd.DataFrame) -> dict:
     """Возвращает словарь вида:
 
     - Общая сумма поступлений.
     - Раздел "Основные", где поступления по категориям отсортированы по убыванию."""
+
+    transactions_list = transactions.to_dict(orient='records')
 
     category_incomes: dict = defaultdict(int)
     total_incomes = 0

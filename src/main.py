@@ -25,7 +25,11 @@ user_stocks = user_information["user_stocks"]
 
 # Получение текущей даты
 current_date = datetime.datetime.now()
-str_date = datetime.datetime.strftime(current_date, "%Y-%m-%d %H:%M:%S")
+str_date =  datetime.datetime.strftime(current_date, "%Y-%m-%d %H:%M:%S")
+
+# Дата, для которой существуют данные в таблице
+# str_date = "2021-01-09 15:34:23"
+
 
 # Получение списка транзакций
 operations_path = f"../data/{OPERATIONS}.xlsx"
@@ -84,13 +88,11 @@ create_report(results, "../output/individual_transfer_search.json")
 
 
 # -------------------------------- Траты в рабочий / выходной день --------------------------------
-# Дата, для которой существуют данные в таблице
-date = "2021-01-09 15:34:23"
 
-spending_by_workday(transactions_list, date)
+spending_by_workday(transactions_list, str_date)
 
 # -------------------------------------- Траты по дням недели --------------------------------------
-spending_by_weekday(transactions_list, date)
+spending_by_weekday(transactions_list, str_date)
 
 # --------------------------------------- Траты по категории ---------------------------------------
-spending_by_category(transactions_list, "Супермаркеты", date)
+spending_by_category(transactions_list, "Супермаркеты", str_date)

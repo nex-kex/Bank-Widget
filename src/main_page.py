@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 from collections import defaultdict
+
 import pandas as pd
 
 from src.api_search import get_currency_rate, get_stock_exchange
@@ -43,10 +44,12 @@ def greet_user(date: str) -> str:
         return "Доброй ночи"
 
 
-def get_cards_numbers(transactions_list: list[dict]) -> list[dict]:
+def get_cards_numbers(transactions: pd.DataFrame) -> list[dict]:
     """По каждой карте находит последние 4 цифры, общую сумму расходов за текущий (последний) месяц и кешбэк."""
 
     cards: dict = defaultdict(int)
+
+    transactions_list = transactions.to_dict(orient='records')
 
     for transaction in transactions_list:
         try:
@@ -71,8 +74,10 @@ def get_cards_numbers(transactions_list: list[dict]) -> list[dict]:
     return result
 
 
-def get_top_transactions(transactions_list: list[dict]) -> list[dict]:
+def get_top_transactions(transactions: pd.DataFrame) -> list[dict]:
     """Находит информацию по 5 наибольшим транзакциям за текущий (последний) месяц."""
+
+    transactions_list = transactions.to_dict(orient='records')
 
     sorted_transactions_list = sorted(transactions_list, key=lambda x: x["Сумма операции"])
     top_transactions = []
@@ -109,6 +114,7 @@ def main_page_func(
     date: str, transactions_list: list[dict], currencies: list[str], stocks: list[str], usd_rate: float = 1
 ) -> dict:
     """Основная функция страницы "Главная"."""
+
     result = {
         "greeting": greet_user(date),
         "cards": get_cards_numbers(transactions_list),

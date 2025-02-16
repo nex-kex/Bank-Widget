@@ -2,6 +2,8 @@ import datetime
 import logging
 import os
 import re
+import pandas as pd
+from pandas.core.interchange.dataframe_protocol import DataFrame
 
 log_path = "../logs/sorting.log"
 
@@ -18,10 +20,10 @@ logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
 
 
-def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK", period: str = "M") -> list[dict]:
+def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK", period: str = "M") -> DataFrame:
     """Из списка всех операций возвращает только операции за текущий период
     (неделя, месяц, год или за всё время). По умолчанию - месяц.
-    Если таких нет, то возвращает операции за последний доступный месяц."""
+    Если таких нет, то возвращает пустой список."""
 
     current_period = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S").strftime("%m.%Y-%W")
     current_period_transactions = []
@@ -48,18 +50,14 @@ def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK",
                     ).strftime("%m.%Y-%W")
                     if re.search(string_period, transaction_date) and transaction["Статус"] == status:
                         current_period_transactions.append(transaction)
+
+                logger.info(f"Найдено {len(current_period_transactions)} транзакций за переданный период")
+
             else:
-                last_date = datetime.datetime.strptime(
-                    transactions_list[0]["Дата операции"], "%d.%m.%Y %H:%M:%S"
-                ).strftime("%Y-%m-%d %H:%M:%S")
-
-                logger.info(f"Не найдено транзакций для {date}. Поиск транзакций для {last_date}")
-
-                return sort_by_period(transactions_list, last_date, status=status, period=period)
+                logger.info(f"Не найдено транзакций для {date}")
+                return pd.DataFrame([])
 
         except KeyError as e:
             logger.critical(f"Передана транзакция без необходимого ключа: {e}")
 
-    logger.info(f"Найдено {len(current_period_transactions)} транзакций за переданный период")
-
-    return current_period_transactions
+    return pd.DataFrame(current_period_transactions)
