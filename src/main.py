@@ -4,7 +4,7 @@ import os
 
 from dotenv import load_dotenv
 
-from src.events import events_func
+from src.events_page import events_func
 from src.main_page import main_page_func
 from src.reports import spending_by_category, spending_by_weekday, spending_by_workday
 from src.search import individual_transfer_search, phone_number_search, simple_search

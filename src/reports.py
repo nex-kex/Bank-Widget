@@ -2,10 +2,12 @@ import datetime
 import logging
 import os
 from collections import defaultdict
+from functools import wraps
+from typing import Callable, Any
 
 from dateutil.relativedelta import relativedelta
 
-from src.views import save_report
+from src.views import create_report
 
 log_path = "../logs/reports.log"
 
@@ -20,6 +22,37 @@ file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(me
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
+
+
+def save_report(filename: str = "") -> Callable:
+    """Декоратор для функций-отчётов, который записывает в файл результат, возвращаемый функциям,
+    формирующими отчёты."""
+
+    def my_decorator(func: Callable) -> Callable:
+
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+
+            # Проверка на наличие ошибок
+            try:
+                func(*args, **kwargs)
+            except Exception as e:
+                logger.critical(f"Произошла ошибка при выполнении функции {func.__name__}: {e}")
+
+            result = func(*args, **kwargs)
+
+            # Запись в файл
+            if filename == "":
+                logger.info("Название файла не задано, запись в стандартный файл")
+                create_report(result, "../output/report_result.json")
+            else:
+                create_report(result, filename)
+
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return my_decorator
 
 
 @save_report(filename="../output/spending_by_workday.json")

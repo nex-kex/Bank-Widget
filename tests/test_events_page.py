@@ -1,4 +1,4 @@
-from src.events import get_expenses, get_incomes
+from src.events_page import get_expenses, get_incomes
 
 
 def test_get_expenses_empty():

@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 from collections import defaultdict
+import pandas as pd
 
 from src.api_search import get_currency_rate, get_stock_exchange
 
