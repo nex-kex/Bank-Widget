@@ -96,7 +96,7 @@ def get_top_transactions(transactions: pd.DataFrame) -> list[dict]:
 
 
 def main_page_func(
-    date: str, transactions_list: list[dict], currencies: list[str], stocks: list[str], usd_rate: float = 1
+    date: str, transactions_list: pd.DataFrame, currencies: list[str], stocks: list[str], usd_rate: float = 1
 ) -> dict:
     """Основная функция страницы "Главная"."""
 

@@ -28,98 +28,61 @@ def get_expenses(transactions: pd.DataFrame) -> dict:
     - Раздел "Основные", где траты по 7 основным категориям отсортированы по убыванию, остальные траты в "Остальном".
     - Раздел "Переводы и наличные", где сумма по категориям отсортирована по убыванию."""
 
-    transactions_list = transactions.to_dict(orient="records")
+    try:
+        # Проверка на то, что это расход и он был успешно выполнен
+        sorted_transactions_list = transactions.loc[
+                (transactions["Статус"] == "OK") & (transactions["Сумма операции"] < 0)
+            ]
 
-    category_expenses: dict = defaultdict(int)
-    total_expenses = 0
-
-    for transaction in transactions_list:
-        try:
-            # Проверка на то, что это расход и он был успешно выполнен
-            if transaction["Статус"] == "OK" and transaction["Сумма операции"] < 0:
-                total_expenses += transaction["Сумма операции с округлением"]
-                category_expenses[transaction["Категория"]] += transaction["Сумма операции с округлением"]
-
-        except KeyError as e:
-            logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue
-
-    # Сортировка названий категорий по убыванию суммы расходов в них
-    sorted_categories = sorted(category_expenses, key=lambda x: category_expenses[x], reverse=True)
-
-    answer = {
-        "total_amount": round(total_expenses, 2),
-        "main": [],
-        "transfers_and_cash": [],
-    }
-    answer_main = []
-    answer_transfers_and_cash = []
-
-    # Заполнение данных по 7 основным категориям
-    for i in range(7):
-        try:
-            answer_main.append(
-                {
-                    "category": sorted_categories[i],
-                    "amount": round(category_expenses[sorted_categories[i]], 2),
-                }
-            )
-        except IndexError:
-            logger.warning("За текущий период получено меньше 7 категорий расходов")
-            continue
-    # Создание категории "Остальное" и добавление в неё остальных расходов
-    answer_main.append(
-        {
-            "category": "Остальное",
-            "amount": 0,
+        total_expenses = float(sorted_transactions_list["Сумма операции с округлением"].agg("sum"))
+        answer = {
+            "total_amount": round(total_expenses, 2),
+            "main": [],
+            "transfers_and_cash": [],
         }
-    )
 
-    for i in range(7, len(sorted_categories)):
-        answer_main[7]["amount"] += category_expenses[sorted_categories[i]]
-    answer_main[-1]["amount"] = round(answer_main[-1]["amount"], 2)
+        category_expenses = sorted_transactions_list.groupby("Категория")["Сумма операции с округлением"].agg("sum").sort_values(ascending=False)
 
-    answer["main"] = answer_main
+        index = 0
+        for category, amount in category_expenses.items():
+            if index < 7:
+                answer["main"].append({
+                    "category": category,
+                    "amount": round(amount, 2),
+                })
+                index += 1
 
-    # Добавление раздела "Наличные и переводы" по убыванию в них суммы расходов
-    for category in sorted_categories:
-        if category == "Наличные":
-            answer_transfers_and_cash.append(
-                {
-                    "category": "Наличные",
-                    "amount": round(category_expenses["Наличные"], 2),
-                }
-            )
-            answer_transfers_and_cash.append(
-                {
-                    "category": "Переводы",
-                    "amount": round(category_expenses["Переводы"], 2),
-                }
-            )
-            break
-        elif category == "Переводы":
-            answer_transfers_and_cash.append(
-                {
-                    "category": "Переводы",
-                    "amount": round(category_expenses["Переводы"], 2),
-                }
-            )
-            answer_transfers_and_cash.append(
-                {
-                    "category": "Наличные",
-                    "amount": round(category_expenses["Наличные"], 2),
-                }
-            )
-            break
+            else:
+                answer["main"].append({
+                    "category": "Остальное",
+                    "amount": float(round(category_expenses.iloc[7:].agg("sum"), 2)),
+                })
+                break
 
-    if len(answer_transfers_and_cash) == 0:
-        logger.info("За текущий период не было переводов и трат наличными")
+        # Добавление раздела "Наличные и переводы" по убыванию в них суммы расходов
 
-    else:
-        logger.info("Успешно получены переводы и траты наличными")
-        answer["transfers_and_cash"] = answer_transfers_and_cash
+        answer["transfers_and_cash"].append({
+            "category": "Наличные",
+            "amount": float(round(sorted_transactions_list.loc[sorted_transactions_list["Категория"] == "Наличные"]["Сумма операции с округлением"].agg("sum"), 2)),
+        })
+        answer["transfers_and_cash"].append({
+            "category": "Переводы",
+            "amount": float(round(sorted_transactions_list.loc[sorted_transactions_list["Категория"] == "Переводы"]["Сумма операции с округлением"].agg("sum"), 2)),
+        })
 
-    return answer
+        # Сортировка категорий по убыванию суммы расходов в них
+        answer["transfers_and_cash"] = sorted(answer["transfers_and_cash"], key=lambda x: x["amount"], reverse=True)
+        logger.info("Получены переводы и траты наличными")
+
+        return answer
+
+    except KeyError as e:
+        logger.warning(f"Передана транзакция без необходимого ключа: {e}")
+
+    except Exception as e:
+        logger.warning(f"Произошла ошибка: {e}")
+
+    return {}
 
 
 def get_incomes(transactions: pd.DataFrame) -> dict:
@@ -128,49 +91,248 @@ def get_incomes(transactions: pd.DataFrame) -> dict:
     - Общая сумма поступлений.
     - Раздел "Основные", где поступления по категориям отсортированы по убыванию."""
 
-    transactions_list = transactions.to_dict(orient="records")
+    try:
+        # Проверка на то, что это поступление и оно было успешно выполнено
+        sorted_transactions_list = transactions.loc[
+                (transactions["Статус"] == "OK") & (transactions["Сумма операции"] > 0)
+            ]
 
-    category_incomes: dict = defaultdict(int)
-    total_incomes = 0
+        total_incomes = float(sorted_transactions_list["Сумма операции с округлением"].agg("sum"))
 
-    for transaction in transactions_list:
-        try:
+        answer = {
+            "total_amount": round(total_incomes, 2),
+            "main": [],
+        }
 
-            # Проверка на то, что это поступление и оно было успешно выполнен
-            if transaction["Статус"] == "OK" and transaction["Сумма операции"] > 0:
-                total_incomes += transaction["Сумма операции с округлением"]
-                category_incomes[transaction["Категория"]] += transaction["Сумма операции с округлением"]
+        # Сортировка категорий по убыванию суммы поступлений в них
+        category_incomes = sorted_transactions_list.groupby("Категория")["Сумма операции с округлением"].agg("sum").sort_values(ascending=False)
+        logger.info(f"Получено {len(category_incomes)} категор. поступлений")
 
-        except KeyError as e:
-            logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue
+        for category, amount in category_incomes.items():
+            answer["main"].append({
+                "category": category,
+                "amount": round(amount, 2),
+            })
 
-    # Сортировка названий категорий по убыванию суммы поступлений в них
-    sorted_categories = sorted(category_incomes, key=lambda x: category_incomes[x], reverse=True)
+        return answer
 
-    logger.info(f"Получено {len(sorted_categories)} категор. поступлений")
+    except KeyError as e:
+        logger.warning(f"Передана транзакция без необходимого ключа: {e}")
 
-    answer = {
-        "total_amount": round(total_incomes, 2),
-        "main": [],
-    }
-    answer_main = []
+    except Exception as e:
+        logger.warning(f"Произошла ошибка: {e}")
 
-    # Заполнение данных по категориям
-    for i in range(len(sorted_categories)):
-        answer_main.append(
-            {
-                "category": sorted_categories[i],
-                "amount": round(category_incomes[sorted_categories[i]], 2),
-            }
-        )
-
-    answer["main"] = answer_main
-
-    return answer
+    return {}
 
 
-def events_func(transactions_list: list[dict], currencies: list[str], stocks: list[str], usd_rate: float = 1) -> dict:
+print(get_incomes(pd.DataFrame([
+        {
+            "Дата операции": "10.01.2021 12:41:24",
+            "Дата платежа": "10.01.2021",
+            "Номер карты": "*5441",
+            "Статус": "FAILED",
+            "Сумма операции": -87068.0,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -87068.0,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "nan",
+            "MCC": "nan",
+            "Описание": "Перевод с карты",
+            "Бонусы (включая кэшбэк)": 0,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 87068.0,
+        },
+        {
+            "Дата операции": "08.12.2020 21:29:43",
+            "Дата платежа": "08.12.2020",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -364.49,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -364.49,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": 30,
+            "Категория": "Супермаркеты",
+            "MCC": 5411.0,
+            "Описание": "Дикси",
+            "Бонусы (включая кэшбэк)": 7,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 364.49,
+        },
+        {
+            "Дата операции": "08.02.2019 14:21:23",
+            "Дата платежа": "08.02.2019",
+            "Номер карты": "*4556",
+            "Статус": "OK",
+            "Сумма операции": -250.0,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -250.0,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "Связь",
+            "MCC": 4814.0,
+            "Описание": "МТС",
+            "Бонусы (включая кэшбэк)": 0,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 250.0,
+        },
+        {
+            "Дата операции": "08.02.2019 13:38:08",
+            "Дата платежа": "08.02.2019",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -1004.9,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -1004.9,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "Различные товары",
+            "MCC": 5311.0,
+            "Описание": "Torgovyy Dom* Mayak",
+            "Бонусы (включая кэшбэк)": 20,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 1004.9,
+        },
+        {
+            "Дата операции": "05.02.2019 15:28:22",
+            "Дата платежа": "05.02.2019",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -79.6,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -79.6,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "Супермаркеты",
+            "MCC": 5411.0,
+            "Описание": "Пятёрочка",
+            "Бонусы (включая кэшбэк)": 1,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 79.6,
+        },
+        {
+            "Дата операции": "05.12.2018 14:58:38",
+            "Дата платежа": "05.12.2018",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -120.0,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -120.0,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": 777,
+            "Категория": "Цветы",
+            "MCC": 5992.0,
+            "Описание": "Пополнение на +7 777 777-77-77",
+            "Бонусы (включая кэшбэк)": 2,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 120.0,
+        },
+        {
+            "Дата операции": "04.12.2018 15:00:41",
+            "Дата платежа": "04.12.2018",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -1025.0,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -1025.0,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "Топливо",
+            "MCC": 5541.0,
+            "Описание": "Pskov AZS 12 K2",
+            "Бонусы (включая кэшбэк)": 20,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 1025.0,
+        },
+        {
+            "Дата операции": "04.11.2018 14:05:08",
+            "Дата платежа": "04.11.2018",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -1065.9,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -1065.9,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "Покупки",
+            "MCC": 5411.0,
+            "Описание": "Пятёрочка",
+            "Бонусы (включая кэшбэк)": 21,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 1065.9,
+        },
+        {
+            "Дата операции": "03.10.2018 15:03:35",
+            "Дата платежа": "03.10.2018",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -73.06,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -73.06,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "Магазины",
+            "MCC": 5499.0,
+            "Описание": "Magazin 25",
+            "Бонусы (включая кэшбэк)": 1,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 73.06,
+        },
+        {
+            "Дата операции": "03.09.2018 14:55:21",
+            "Дата платежа": "03.09.2018",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -21.0,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -21.0,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "Красота",
+            "MCC": 5977.0,
+            "Описание": "OOO Balid",
+            "Бонусы (включая кэшбэк)": 0,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 21.0,
+        },
+        {
+            "Дата операции": "01.08.2018 20:27:51",
+            "Дата платежа": "01.08.2018",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": 316.0,
+            "Валюта операции": "RUB",
+            "Сумма платежа": 316.0,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": "nan",
+            "Категория": "Красота",
+            "MCC": 5977.0,
+            "Описание": "OOO Balid",
+            "Бонусы (включая кэшбэк)": 6,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 316.0,
+        },
+        {
+            "Дата операции": "01.07.2018 12:49:53",
+            "Дата платежа": "01.07.2018",
+            "Номер карты": "*7197",
+            "Статус": "OK",
+            "Сумма операции": -3000.0,
+            "Валюта операции": "RUB",
+            "Сумма платежа": -3000.0,
+            "Валюта платежа": "RUB",
+            "Кэшбэк": 20,
+            "Категория": "Переводы",
+            "MCC": "nan",
+            "Описание": "Анастасия Л.",
+            "Бонусы (включая кэшбэк)": 0,
+            "Округление на инвесткопилку": 0,
+            "Сумма операции с округлением": 3000.0,
+        },
+    ])))
+
+def events_func(transactions_list: pd.DataFrame, currencies: list[str], stocks: list[str], usd_rate: float = 1) -> dict:
     """Основная функция страницы "События"."""
     result = {
         "expenses": get_expenses(transactions_list),
