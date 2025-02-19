@@ -2,11 +2,12 @@ import datetime
 import json
 import os
 
+import pandas as pd
 from dotenv import load_dotenv
 
 from src.events_page import events_func
 from src.main_page import main_page_func
-from src.reports import spending_by_category, spending_by_weekday, spending_by_workday
+from src.reports import spending_by_category
 from src.search import individual_transfer_search, phone_number_search, simple_search
 from src.services import services_cashback, services_investments
 from src.sorting import sort_by_period
@@ -27,9 +28,11 @@ user_stocks = user_information["user_stocks"]
 current_date = datetime.datetime.now()
 str_date = datetime.datetime.strftime(current_date, "%Y-%m-%d %H:%M:%S")
 
-# Дата, для которой существуют данные в таблице
-# str_date = "2021-01-09 15:34:23"
-
+# Дата, для которой существуют данные в таблице (заменяет данные в строках 28-29, 61-62, 69)
+# str_date = "2021-02-09 15:34:23"
+# str_month = "02"
+# str_year = "2021"
+# str_year_month = "2021-02"
 
 # Получение списка транзакций
 operations_path = f"../data/{OPERATIONS}.xlsx"
@@ -55,7 +58,6 @@ create_report(data, "../output/events.json")
 
 # ----------------------------- Выгодные категории повышенного кешбэка -----------------------------
 # Получение даты в нужном формате
-current_date = datetime.datetime.now()
 str_month = datetime.datetime.strftime(current_date, "%m")
 str_year = datetime.datetime.strftime(current_date, "%Y")
 
@@ -64,7 +66,6 @@ create_report(cashback_by_category, "../output/cashback_by_category.json")
 
 # ----------------------------------------- Инвесткопилка -----------------------------------------
 # Получение даты в нужном формате
-current_date = datetime.datetime.now()
 str_year_month = datetime.datetime.strftime(current_date, "%Y-%m")
 
 investments = services_investments(str_year_month, transactions_list, 50)
@@ -87,12 +88,5 @@ create_report(results, "../output/individual_transfer_search.json")
 # --------------------------------------------- ОТЧЁТЫ ---------------------------------------------
 
 
-# -------------------------------- Траты в рабочий / выходной день --------------------------------
-
-spending_by_workday(transactions_list, str_date)
-
-# -------------------------------------- Траты по дням недели --------------------------------------
-spending_by_weekday(transactions_list, str_date)
-
 # --------------------------------------- Траты по категории ---------------------------------------
-spending_by_category(transactions_list, "Супермаркеты", str_date)
+spending_by_category(pd.DataFrame(transactions_list), "Супермаркеты", str_date)

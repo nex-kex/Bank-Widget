@@ -4,7 +4,6 @@ import os
 import re
 
 import pandas as pd
-from pandas.core.interchange.dataframe_protocol import DataFrame
 
 log_path = "../logs/sorting.log"
 
@@ -21,7 +20,9 @@ logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
 
 
-def sort_by_period(transactions_list: list[dict], date: str, status: str = "OK", period: str = "M") -> DataFrame:
+def sort_by_period(
+    transactions_list: list[dict], date: str, status: str = "OK", period: str = "M"
+) -> pd.core.frame.DataFrame:
     """Из списка всех операций возвращает только операции за текущий период
     (неделя, месяц, год или за всё время). По умолчанию - месяц.
     Если таких нет, то возвращает пустой список."""

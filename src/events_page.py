@@ -1,6 +1,5 @@
 import logging
 import os
-from collections import defaultdict
 
 import pandas as pd
 
@@ -35,11 +34,9 @@ def get_expenses(transactions: pd.DataFrame) -> dict:
         ]
 
         total_expenses = float(sorted_transactions_list["Сумма операции с округлением"].agg("sum"))
-        answer = {
-            "total_amount": round(total_expenses, 2),
-            "main": [],
-            "transfers_and_cash": [],
-        }
+
+        answer_main = []
+        answer_transfers_and_cash = []
 
         category_expenses = (
             sorted_transactions_list.groupby("Категория")["Сумма операции с округлением"]
@@ -50,7 +47,7 @@ def get_expenses(transactions: pd.DataFrame) -> dict:
         index = 0
         for category, amount in category_expenses.items():
             if index < 7:
-                answer["main"].append(
+                answer_main.append(
                     {
                         "category": category,
                         "amount": round(amount, 2),
@@ -59,7 +56,7 @@ def get_expenses(transactions: pd.DataFrame) -> dict:
                 index += 1
 
             else:
-                answer["main"].append(
+                answer_main.append(
                     {
                         "category": "Остальное",
                         "amount": float(round(category_expenses.iloc[7:].agg("sum"), 2)),
@@ -69,7 +66,7 @@ def get_expenses(transactions: pd.DataFrame) -> dict:
 
         # Добавление раздела "Наличные и переводы" по убыванию в них суммы расходов
 
-        answer["transfers_and_cash"].append(
+        answer_transfers_and_cash.append(
             {
                 "category": "Наличные",
                 "amount": float(
@@ -82,7 +79,7 @@ def get_expenses(transactions: pd.DataFrame) -> dict:
                 ),
             }
         )
-        answer["transfers_and_cash"].append(
+        answer_transfers_and_cash.append(
             {
                 "category": "Переводы",
                 "amount": float(
@@ -95,6 +92,12 @@ def get_expenses(transactions: pd.DataFrame) -> dict:
                 ),
             }
         )
+
+        answer = {
+            "total_amount": round(total_expenses, 2),
+            "main": answer_main,
+            "transfers_and_cash": answer_transfers_and_cash,
+        }
 
         # Сортировка категорий по убыванию суммы расходов в них
         answer["transfers_and_cash"] = sorted(answer["transfers_and_cash"], key=lambda x: x["amount"], reverse=True)
@@ -125,10 +128,7 @@ def get_incomes(transactions: pd.DataFrame) -> dict:
 
         total_incomes = float(sorted_transactions_list["Сумма операции с округлением"].agg("sum"))
 
-        answer = {
-            "total_amount": round(total_incomes, 2),
-            "main": [],
-        }
+        answer_main = []
 
         # Сортировка категорий по убыванию суммы поступлений в них
         category_incomes = (
@@ -139,12 +139,17 @@ def get_incomes(transactions: pd.DataFrame) -> dict:
         logger.info(f"Получено {len(category_incomes)} категор. поступлений")
 
         for category, amount in category_incomes.items():
-            answer["main"].append(
+            answer_main.append(
                 {
                     "category": category,
                     "amount": round(amount, 2),
                 }
             )
+
+        answer = {
+            "total_amount": round(total_incomes, 2),
+            "main": answer_main,
+        }
 
         return answer
 

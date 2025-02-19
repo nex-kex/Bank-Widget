@@ -77,9 +77,13 @@ def get_cards_numbers(transactions_list: pd.DataFrame) -> list[dict]:
 
         return result
 
+    except KeyError as e:
+        logger.warning(f"Передана транзакция без необходимого ключа: {e}")
+
     except Exception as e:
         logger.warning(f"Произошла ошибка: {e}")
-        return []
+
+    return []
 
 
 def get_top_transactions(transactions: pd.DataFrame) -> list[dict]:
@@ -104,6 +108,9 @@ def get_top_transactions(transactions: pd.DataFrame) -> list[dict]:
                 )
             else:
                 break
+
+    except KeyError as e:
+        logger.warning(f"Передана транзакция без необходимого ключа: {e}")
 
     except Exception as e:
         logger.warning(f"Произошла ошибка: {e}")
