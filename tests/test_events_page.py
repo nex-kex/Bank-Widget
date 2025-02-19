@@ -4,11 +4,7 @@ from src.events_page import get_expenses, get_incomes
 
 
 def test_get_expenses_empty():
-    assert get_expenses(pd.DataFrame([])) == {
-        "total_amount": 0,
-        "main": [{"category": "Остальное", "amount": 0}],
-        "transfers_and_cash": [],
-    }
+    assert get_expenses(pd.DataFrame([])) == {}
 
 
 def test_get_expenses_3_categories():
@@ -39,12 +35,11 @@ def test_get_expenses_3_categories():
         "total_amount": 3021.0,
         "main": [
             {"category": "Переводы", "amount": 3000.0},
-            {"category": "Супермаркеты", "amount": 21},
-            {"category": "Остальное", "amount": 0},
+            {"category": "Супермаркеты", "amount": 21.0},
         ],
         "transfers_and_cash": [
-            {"category": "Переводы", "amount": 3000},
-            {"category": "Наличные", "amount": 0},
+            {"category": "Переводы", "amount": 3000.0},
+            {"category": "Наличные", "amount": 0.0},
         ],
     }
 
@@ -80,16 +75,13 @@ def test_get_expenses_cash():
         )
     ) == {
         "total_amount": 2100,
-        "main": [
-            {"category": "Наличные", "amount": 2100},
-            {"category": "Остальное", "amount": 0},
-        ],
+        "main": [{"category": "Наличные", "amount": 2100}],
         "transfers_and_cash": [{"category": "Наличные", "amount": 2100.0}, {"category": "Переводы", "amount": 0}],
     }
 
 
 def test_get_incomes_empty():
-    assert get_incomes(pd.DataFrame([])) == {"total_amount": 0, "main": []}
+    assert get_incomes(pd.DataFrame([])) == {}
 
 
 def test_get_incomes_3_categories():

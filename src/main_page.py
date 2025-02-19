@@ -42,14 +42,16 @@ def greet_user(date: str) -> str:
         return "Доброй ночи"
 
 
-def get_cards_numbers(transactions_list: pd.DataFrame) -> dict:
+def get_cards_numbers(transactions_list: pd.DataFrame) -> list[dict]:
     """По каждой карте находит последние 4 цифры, общую сумму расходов за текущий (последний) месяц и кешбэк."""
 
     total_spending = {}
 
     try:
         transactions_list_sorted = transactions_list.loc[
-            (transactions_list["Сумма операции"] < 0) & ((transactions_list["Номер карты"]) != "nan")
+            (transactions_list["Сумма операции"] < 0)
+            & ((transactions_list["Номер карты"]) != "nan")
+            & ((transactions_list["Статус"]) == "OK")
         ]
         cards = transactions_list_sorted.groupby("Номер карты")["Сумма операции с округлением"].agg("sum")
 
@@ -60,21 +62,36 @@ def get_cards_numbers(transactions_list: pd.DataFrame) -> dict:
 
         logger.info(f"Обнаружены данные по {len(total_spending)} картам")
 
+        result = []
+        for key, value in cards.items():
+            if str(key) != "nan":
+                result.append(
+                    {
+                        "last_digits": str(key)[1:],
+                        "total_spent": round(value, 2),
+                        "cashback": round(value / 100, 2),
+                    }
+                )
+
+        logger.info(f"Обнаружены данные по {len(result)} картам")
+
+        return result
+
     except Exception as e:
         logger.warning(f"Произошла ошибка: {e}")
-
-    return total_spending
+        return []
 
 
 def get_top_transactions(transactions: pd.DataFrame) -> list[dict]:
     """Находит информацию по 5 наибольшим транзакциям за текущий (последний) месяц."""
 
-    sorted_transactions_list = transactions.loc[
-        (transactions["Статус"] == "OK") & (transactions["Сумма операции"] < 0)
-    ].sort_values("Сумма операции с округлением", ascending=False, ignore_index=True)
     top_transactions = []
 
     try:
+        sorted_transactions_list = transactions.loc[
+            (transactions["Статус"] == "OK") & (transactions["Сумма операции"] < 0)
+        ].sort_values("Сумма операции с округлением", ascending=False, ignore_index=True)
+
         for index, transaction in sorted_transactions_list.iterrows():
             if int(index) < 5:
                 top_transactions.append(
