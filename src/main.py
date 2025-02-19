@@ -25,7 +25,7 @@ user_stocks = user_information["user_stocks"]
 
 # Получение текущей даты
 current_date = datetime.datetime.now()
-str_date =  datetime.datetime.strftime(current_date, "%Y-%m-%d %H:%M:%S")
+str_date = datetime.datetime.strftime(current_date, "%Y-%m-%d %H:%M:%S")
 
 # Дата, для которой существуют данные в таблице
 # str_date = "2021-01-09 15:34:23"

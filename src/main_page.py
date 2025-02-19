@@ -1,7 +1,6 @@
 import datetime
 import logging
 import os
-from collections import defaultdict
 
 import pandas as pd
 
@@ -12,7 +11,6 @@ log_path = "../logs/main_page.log"
 # Устраняет ошибку отсутствия файла при импорте модуля
 if str(os.path.dirname(os.path.abspath(__name__)))[-3:] != "src":
     log_path = log_path[1:]
-
 
 logger = logging.getLogger("main_page")
 file_handler = logging.FileHandler(log_path, "w", encoding="utf-8")
@@ -44,69 +42,56 @@ def greet_user(date: str) -> str:
         return "Доброй ночи"
 
 
-def get_cards_numbers(transactions: pd.DataFrame) -> list[dict]:
+def get_cards_numbers(transactions_list: pd.DataFrame) -> dict:
     """По каждой карте находит последние 4 цифры, общую сумму расходов за текущий (последний) месяц и кешбэк."""
 
-    cards: dict = defaultdict(int)
+    total_spending = {}
 
-    transactions_list = transactions.to_dict(orient='records')
+    try:
+        transactions_list_sorted = transactions_list.loc[
+            (transactions_list["Сумма операции"] < 0) & ((transactions_list["Номер карты"]) != "nan")
+        ]
+        cards = transactions_list_sorted.groupby("Номер карты")["Сумма операции с округлением"].agg("sum")
 
-    for transaction in transactions_list:
-        try:
-            if transaction["Сумма операции"] < 0:
-                cards[transaction["Номер карты"]] += transaction["Сумма операции с округлением"]
-        except KeyError as e:
-            logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue
+        cards_dict = cards.to_dict()
 
-    result = []
-    for key, value in cards.items():
-        if str(key) != "nan":
-            result.append(
-                {
-                    "last_digits": str(key)[1:],
-                    "total_spent": round(value, 2),
-                    "cashback": round(value / 100, 2),
-                }
-            )
+        for number, spending in cards_dict.items():
+            total_spending[str(number)[1:]] = round(spending, 2)
 
-    logger.info(f"Обнаружены данные по {len(result)} картам")
-    return result
+        logger.info(f"Обнаружены данные по {len(total_spending)} картам")
+
+    except Exception as e:
+        logger.warning(f"Произошла ошибка: {e}")
+
+    return total_spending
 
 
 def get_top_transactions(transactions: pd.DataFrame) -> list[dict]:
     """Находит информацию по 5 наибольшим транзакциям за текущий (последний) месяц."""
 
-    transactions_list = transactions.to_dict(orient='records')
-
-    sorted_transactions_list = sorted(transactions_list, key=lambda x: x["Сумма операции"])
+    sorted_transactions_list = transactions.loc[
+        (transactions["Статус"] == "OK") & (transactions["Сумма операции"] < 0)
+    ].sort_values("Сумма операции с округлением", ascending=False, ignore_index=True)
     top_transactions = []
 
-    for i in range(5):
-        try:
-            if sorted_transactions_list[i]["Сумма операции"] < 0:
+    try:
+        for index, transaction in sorted_transactions_list.iterrows():
+            if int(index) < 5:
                 top_transactions.append(
                     {
-                        "date": sorted_transactions_list[i]["Дата платежа"],
-                        "amount": sorted_transactions_list[i]["Сумма операции с округлением"],
-                        "category": sorted_transactions_list[i]["Категория"],
-                        "description": sorted_transactions_list[i]["Описание"],
+                        "date": transaction["Дата платежа"],
+                        "amount": transaction["Сумма операции с округлением"],
+                        "category": transaction["Категория"],
+                        "description": transaction["Описание"],
                     }
                 )
             else:
-                # Если пополнения входят в топ 5, то платежей меньше 5
-                logger.info(f"За текущий период обнаружено только {i} транз. с расходами")
-                return top_transactions
+                break
 
-        except IndexError:
-            logger.warning("За текущий период передано менее 5 транзакций")
-            continue
+    except Exception as e:
+        logger.warning(f"Произошла ошибка: {e}")
 
-        except KeyError as e:
-            logger.warning(f"Передана транзакция без необходимого ключа: {e}")
-            continue
-
-    logger.info("Успешно обнаружены топ 5 транз.")
+    logger.info(f"Обнаружены топ {len(top_transactions)} транз.")
     return top_transactions
 
 

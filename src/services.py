@@ -1,6 +1,7 @@
 import logging
 import os
 from collections import defaultdict
+
 import pandas as pd
 
 from src.sorting import sort_by_period
@@ -24,7 +25,7 @@ def get_category_cashback(transactions: pd.DataFrame) -> dict:
     """Принимает список транзакций, возвращает кешбэк по категориям."""
     category_cashback: dict = defaultdict(int)
 
-    transactions_list = transactions.to_dict(orient='records')
+    transactions_list = transactions.to_dict(orient="records")
 
     for transaction in transactions_list:
         if transaction.get("Категория") and str(transaction["Категория"]) != "nan":
@@ -48,7 +49,7 @@ def get_category_cashback(transactions: pd.DataFrame) -> dict:
 def count_investments(transactions: pd.DataFrame, limit: int) -> float:
     """Функция возвращает сумму, которую удалось бы отложить в «Инвесткопилку»."""
 
-    transactions_list = transactions.to_dict(orient='records')
+    transactions_list = transactions.to_dict(orient="records")
 
     investments = 0.0
 

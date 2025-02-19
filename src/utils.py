@@ -18,13 +18,12 @@ logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
 
 
-def read_from_xlsx(xlsx_file: str) -> list[dict]:
+def read_from_xlsx(xlsx_file: str) -> pd.DataFrame:
     """Читает XLSX-файл file_name с транзакциями и возвращает их в виде списка словарей."""
     try:
         data = pd.read_excel(xlsx_file)
-        transactions = data.to_dict(orient="records")
+        return data
 
     except Exception as e:
         logger.critical(f"Произошла ошибка при чтении XLSX-файла: {e}")
-
-    return transactions
+        return pd.DataFrame([])

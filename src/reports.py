@@ -3,7 +3,7 @@ import logging
 import os
 from collections import defaultdict
 from functools import wraps
-from typing import Callable, Any
+from typing import Any, Callable
 
 from dateutil.relativedelta import relativedelta
 

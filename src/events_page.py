@@ -1,6 +1,7 @@
 import logging
 import os
 from collections import defaultdict
+
 import pandas as pd
 
 from src.api_search import get_currency_rate, get_stock_exchange
@@ -27,7 +28,7 @@ def get_expenses(transactions: pd.DataFrame) -> dict:
     - Раздел "Основные", где траты по 7 основным категориям отсортированы по убыванию, остальные траты в "Остальном".
     - Раздел "Переводы и наличные", где сумма по категориям отсортирована по убыванию."""
 
-    transactions_list = transactions.to_dict(orient='records')
+    transactions_list = transactions.to_dict(orient="records")
 
     category_expenses: dict = defaultdict(int)
     total_expenses = 0
@@ -127,7 +128,7 @@ def get_incomes(transactions: pd.DataFrame) -> dict:
     - Общая сумма поступлений.
     - Раздел "Основные", где поступления по категориям отсортированы по убыванию."""
 
-    transactions_list = transactions.to_dict(orient='records')
+    transactions_list = transactions.to_dict(orient="records")
 
     category_incomes: dict = defaultdict(int)
     total_incomes = 0
