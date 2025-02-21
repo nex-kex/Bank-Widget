@@ -41,7 +41,7 @@ def save_report(filename: str = "") -> Callable:
                     logger.info("Название файла не задано, запись в стандартный файл")
                     create_report(result.to_dict(orient="records"), "../output/report_result.json")
                 else:
-                    create_report(result, filename)
+                    create_report(result.to_dict(orient="records"), filename)
 
             except Exception as e:
                 logger.critical(f"Произошла ошибка при выполнении функции {func.__name__}: {e}")
