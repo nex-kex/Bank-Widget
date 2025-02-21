@@ -34,20 +34,20 @@ def save_report(filename: str = "") -> Callable:
 
             # Проверка на наличие ошибок
             try:
-                func(*args, **kwargs)
+                result = func(*args, **kwargs)
+
+                # Запись в файл
+                if filename == "":
+                    logger.info("Название файла не задано, запись в стандартный файл")
+                    create_report(result.to_dict(orient="records"), "../output/report_result.json")
+                else:
+                    create_report(result, filename)
+
             except Exception as e:
                 logger.critical(f"Произошла ошибка при выполнении функции {func.__name__}: {e}")
+                raise e
 
-            result = func(*args, **kwargs)
-
-            # Запись в файл
-            if filename == "":
-                logger.info("Название файла не задано, запись в стандартный файл")
-                create_report(result, "../output/report_result.json")
-            else:
-                create_report(result, filename)
-
-            return func(*args, **kwargs)
+            return result
 
         return wrapper
 
@@ -55,7 +55,7 @@ def save_report(filename: str = "") -> Callable:
 
 
 @save_report(filename="../output/spending_by_category.json")
-def spending_by_category(transactions: pd.DataFrame, category: str, date: str = "") -> dict:
+def spending_by_category(transactions: pd.DataFrame, category: str, date: str = "") -> pd.DataFrame:
     """Функция возвращает траты по заданной категории за последние три месяца (от переданной даты).
     Если дата не передана, то берется текущая дата."""
 
@@ -93,7 +93,7 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: str = 
             category.capitalize(): round(category_spending, 2),
         }
 
-        return answer
+        return pd.DataFrame([answer])
 
     except KeyError as e:
         logger.warning(f"Передана транзакция без необходимого ключа: {e}")
@@ -101,7 +101,7 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: str = 
     except Exception as e:
         logger.warning(f"Произошла ошибка: {e}")
 
-    return {}
+    return pd.DataFrame({})
 
 
 # Нет уже сил переделать, но жалко удалять(
